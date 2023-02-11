@@ -1,0 +1,147 @@
+Creating socket...
+Binding socket to local address...
+Listening...
+New connection from 7.
+client added 
+filePath = /tmp/1676049242.html
+/.
+/..
+/errors
+/form.html
+/index.html
+/page2.html
+/planet
+/smile.png
+/test.txt
+HTTP/1.1 200 OK 
+Connection: close
+Content-Length: 457
+Content-Type: text/html
+
+
+New connection from 9.
+client added 
+HTTP/1.1 200 OK 
+Connection: close
+Content-Length: 330
+Content-Type: text/html
+
+
+New connection from 8.
+client added 
+HTTP/1.1 200 OK 
+Connection: close
+Content-Length: 6005
+Content-Type: image/png
+
+
+New connection from 7.
+client added 
+HTTP/1.1 200 OK 
+Connection: close
+Content-Length: 455
+Content-Type: text/html
+
+
+New connection from 9.
+client added 
+New connection from 7.
+client added 
+HTTP/1.1 200 OK 
+Connection: close
+Content-Length: 330
+Content-Type: text/html
+
+
+HTTP/1.1 200 OK 
+Connection: close
+Content-Length: 6005
+Content-Type: image/png
+
+
+New connection from 7.
+client added 
+New connection from 8.
+client added 
+HTTP/1.1 200 OK 
+Connection: close
+Content-Length: 171
+Content-Type: text/html
+
+
+New connection from 7.
+client added 
+HTTP/1.1 404  Not Found 
+Connection: close
+Content-Length: 275
+Content-Type: text/html
+
+
+HTTP/1.1 200 OK 
+Connection: close
+Content-Length: 6005
+Content-Type: image/png
+
+
+New connection from 7.
+client added 
+New connection from 8.
+client added 
+HTTP/1.1 200 OK 
+Connection: close
+Content-Length: 6005
+Content-Type: image/png
+
+
+New connection from 7.
+client added 
+HTTP/1.1 200 OK 
+Connection: close
+Content-Length: 41
+Content-Type: text/plain
+
+
+New connection from 8.
+client added 
+HTTP/1.1 404  Not Found 
+Connection: close
+Content-Length: 274
+Content-Type: text/html
+
+
+New connection from 7.
+client added 
+filePath = /tmp/1676049265.html
+/.
+/..
+/errors
+/form.html
+/index.html
+/page2.html
+/planet
+/smile.png
+/test.txt
+HTTP/1.1 200 OK 
+Connection: close
+Content-Length: 457
+Content-Type: text/html
+
+
+New connection from 8.
+client added 
+filePath = /tmp/1676049267.html
+/.
+/..
+/errors
+/form.html
+/index.html
+/page2.html
+/planet
+/smile.png
+/test.txt
+HTTP/1.1 200 OK 
+Connection: close
+Content-Length: 457
+Content-Type: text/html
+
+

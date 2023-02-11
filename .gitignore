@@ -1,0 +1,16 @@
+cmake-build-debug
+**/*.out
+**/*.exe
+**/*.DS_store
+**/*.a
+**/*.o
+_OUT/
+WebServer
+web_server
+#CMakeLists.txt
+
+.idea/**/workspace.xml
+.idea/**/tasks.xml
+.idea/**/usage.statistics.xml
+.idea/**/dictionaries
+.idea/**/shelf

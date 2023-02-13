@@ -1,8 +1,8 @@
 server
 {
-    listen     102.168.0.1:3031
+    listen     192.168.1.1:3031
     server_name			se
-    max_client_body_size 4294967295
+    max_client_body_size 42949672
     error_page 404 public/errors/400.html
     location  /
     {

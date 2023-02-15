@@ -8,6 +8,8 @@
 #include <stack>
 #include <sstream>
 #include <algorithm>
+#include "ChunckContentHandler.hpp"
+#include "FileSystem.hpp"
 
 class Location
 {
@@ -688,11 +690,21 @@ public:
 
 
 void start(const std::string &confPath){
-	Configurations configurations = Configurations(confPath);
+	/*Configurations configurations = Configurations(confPath);
 	std::vector<ServerConfig> conf = configurations.getConfigurations();
 	for (std::vector<ServerConfig>::iterator iter = conf.begin(); iter != conf.end(); ++iter){
 		//iter->display();
-	}
+	}*/
+
+	ChunkContentHandler::testFunction(confPath);
+	/*try{
+		FileSystem f("../testFolder");
+		f.list_directory();
+	}catch (std::exception& e){
+		std::cout << e.what() << std::endl;
+	}*/
+
+
 }
 
 int	main(int ac, char **av)

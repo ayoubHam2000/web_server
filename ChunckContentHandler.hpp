@@ -22,25 +22,21 @@ private:
 	static const unsigned int	maxBuffer = 20;
 	unsigned long 				expectedContentSize;
 	char						nbBuffer[maxBuffer];
+	unsigned int				nbBufferCounter;
+	short 						contentEnd;
 	bool						done;
 
+private:
+	ChunkContentHandler(const ChunkContentHandler& other);
+	ChunkContentHandler& operator=(const ChunkContentHandler& other);
 public:
 
 	ChunkContentHandler(){
-		done = false;
 		expectedContentSize = 0;
 		std::memset(nbBuffer, 0, maxBuffer);
-	}
-
-	ChunkContentHandler(const ChunkContentHandler& other){
-		*this = other;
-	}
-
-	ChunkContentHandler& operator=(const ChunkContentHandler& other)
-	{
-		expectedContentSize = other.expectedContentSize;
-		std::memcpy(nbBuffer, other.nbBuffer, maxBuffer);
-		return (*this);
+		nbBufferCounter = 0;
+		contentEnd = 0;
+		done = false;
 	}
 
 	~ChunkContentHandler(){}
@@ -50,42 +46,25 @@ public:
 	{
 		return done;
 	}
+
 	/**
  	** @brief supply the @param arr with a list of {start_ptr (included) and end_ptr (excluded)} of the chunked content.
 	 * @return true if success else false in case of bad hex_number (big than unsigned int or malformed)
  	*/
-
 	bool getHttpChunkContent(const char *chunk, unsigned int chunkSize, std::vector<const char *> &arr){
-		int i = 0;
-
 		if (chunkSize == 0) {
 			return (true);
 		}
-		while (nbBuffer[i] != 0)
-			i++;
 		while (chunkSize--){
 			if (expectedContentSize == 0)
 			{
 				if (arr.size() % 2 == 1){
 					arr.push_back(chunk);
 				}
-				if (i == maxBuffer){
-					std::memset(nbBuffer, 0, maxBuffer);
+				if (!_readNb(*chunk))
 					return (false);
-				}
-				nbBuffer[i] = *chunk;
-				if (i >= 1 && !std::strncmp(nbBuffer + (i - 1), "\r\n", 2)){
-					if (!_setExpectedContentSize())
-						return (false);
-					if (expectedContentSize == 2){
-						done = true;
-						break;
-					}
-					i = 0;
-					std::memset(nbBuffer, 0, maxBuffer);
-				}
-				else
-					i++;
+				if (done)
+					break;
 			}
 			else
 			{
@@ -110,6 +89,7 @@ public:
 		std::ifstream file (filePath);
 		char buffer[1001];
 		ChunkContentHandler clientChunk;
+		//int chunkedSize[] = {20};
 		int chunkedSize[] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
 		int nbChunks = sizeof(chunkedSize) / sizeof(int);
 		int counter = 0;
@@ -138,7 +118,7 @@ public:
 
 private:
 
-	bool _setExpectedContentSize(){
+	bool __parseNb(){
 		int i = 0;
 
 		while (_isHexChar(nbBuffer[i]))
@@ -150,12 +130,34 @@ private:
 		nbBuffer[i] = 0;
 		try{
 			expectedContentSize = std::stoul(nbBuffer, NULL, 16);
-			if (expectedContentSize > 0xFFFFFFFFFFFFFFFDul){
-				return (false);
-			}
-			expectedContentSize += 2;
 		}catch (std::exception &e){
 			return (false);
+		}
+		return (true);
+	}
+
+	bool _readNb(char c){
+		if ((contentEnd == 2 && c != '\r') || (contentEnd == 1 && c != '\n'))
+			return (false);
+		if (contentEnd != 0){
+			contentEnd--;
+			return (true);
+		}
+		if (nbBufferCounter == maxBuffer){
+			return (false);
+		}
+		nbBuffer[nbBufferCounter++] = c;
+		if (nbBufferCounter >= 2 && !std::strncmp(nbBuffer + (nbBufferCounter - 2), "\r\n", 2)){
+			if (!__parseNb())
+				return (false);
+			else{
+				std::memset(nbBuffer, 0, maxBuffer);
+				nbBufferCounter = 0;
+				contentEnd = 2;
+			}
+			if (expectedContentSize == 0){
+				done = true;
+			}
 		}
 		return (true);
 	}

@@ -6,6 +6,7 @@ cmake-build-debug
 **/*.o
 _OUT/
 WebServer
+testFolder
 web_server
 #CMakeLists.txt
 

@@ -696,13 +696,15 @@ void start(const std::string &confPath){
 		//iter->display();
 	}*/
 
-	ChunkContentHandler::testFunction(confPath);
-	/*try{
-		FileSystem f("../testFolder");
-		f.list_directory();
+	//ChunkContentHandler::testFunction(confPath);
+	try{
+		std::string f("../testFolder/parsing");
+		//FileSystem::deleteFolder("../testFolder");
+		//FileSystem::remove("../testFolder/d");
+		FileSystem::removeAll(f.c_str(), true);
 	}catch (std::exception& e){
 		std::cout << e.what() << std::endl;
-	}*/
+	}
 
 
 }

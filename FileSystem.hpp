@@ -16,48 +16,25 @@
 # include <sstream>
 # include <algorithm>
 
-#include <stdio.h>
-#include <dirent.h>
-#include <sys/stat.h>
-#include <unistd.h>
+# include <stdio.h>
+# include <dirent.h>
+# include <sys/stat.h>
+# include <unistd.h>
 
-class FileSystem{
-private:
-	const char *_path;
-public:
+namespace FileSystem{
+
 	enum {
 		T_DIR, T_RF
 	};
-public:
-	FileSystem(const std::string& path) : _path(path.c_str()){
-		FileSystem(path.c_str());
-	}
-	FileSystem(const char *path): _path(path){
-		if (!file_exists())
-			throw std::runtime_error("File Not Found");
-	}
-
-	FileSystem(const FileSystem& other){}
-	FileSystem& operator=(const FileSystem& other){
-		return (*this);
-	}
-	~FileSystem(){};
-
-public:
 
 
-	bool file_exists()
+	bool file_exists(const char *path)
 	{
-		return (access(_path, F_OK) == 0);
+		return (access(path, F_OK) == 0);
 	}
 
-	bool directory_exists()
-	{
-		return (access(_path, F_OK | R_OK | X_OK) == 0);
-	}
-
-	bool isDirectory(){
-		DIR* dir = opendir(_path);
+	bool isDirectory(const char *path){
+		DIR* dir = opendir(path);
 		if (dir != NULL)
 		{
 			closedir(dir);
@@ -66,20 +43,18 @@ public:
 		return false;
 	}
 
-	void directoryIter(void (*f)(const char *path, int type))
+	void getListOfFiles(const char* path, std::vector<std::string> &list)
 	{
-		DIR* dir = opendir(_path);
+		DIR* dir = opendir(path);
 		if (dir != NULL)
 		{
 			struct dirent* entry;
 			entry = readdir(dir);
 			while (entry)
 			{
-				if (entry->d_type == DT_REG)
+				if (entry->d_type == DT_REG || entry->d_type == DT_DIR)
 				{
-					f(entry->d_name, T_RF);
-				} else if (entry->d_type == DT_DIR){
-					f(entry->d_name, T_DIR);
+					list.push_back(entry->d_name);
 				}
 				entry = readdir(dir);
 			}
@@ -87,13 +62,75 @@ public:
 		}
 	}
 
-	bool deleteFile(const char *path, int type){
-		return (remove(path) == 0);
+	int removeEmptyDir(const char *path){
+		return (0);
+		return (rmdir(path));
 	}
 
-	bool deleteFolder(const char *path){
-		
+	int removeFile(const char *path){
+		return (0);
+		return (unlink(path));
 	}
+
+	int remove(const char *path){
+		if (isDirectory(path))
+			return removeEmptyDir(path);
+		else
+			return removeFile(path);
+	}
+
+	char* pathJoin(const char *path, const char *name){
+		size_t pathLen = std::strlen(path);
+		size_t nameLen = std::strlen(name);
+		char *newPath = new char[pathLen + nameLen + 2];
+		std::strcpy(newPath, path);
+		std::strncat(newPath, "/", 1);
+		std::strncat(newPath, name, nameLen);
+		return (newPath);
+	}
+
+	void	removeAll(const char *path, bool verbose = false, bool allowed = false){
+		DIR* dir = opendir(path);
+
+		//TODO: remove
+		if (!allowed){
+			std::cout << "Warning this folder will be removed (0/1): " << path << ": ";
+			std::cin >> allowed;
+			std::cout << std::endl;
+			if (!allowed)
+				return ;
+		}
+		if (dir != NULL)
+		{
+			struct dirent* entry;
+			entry = readdir(dir);
+			while (entry)
+			{
+				char *filePath = pathJoin(path, entry->d_name);
+				if (entry->d_type == DT_REG)
+				{
+					if (removeFile(filePath) != 0)
+						std::cerr << "can't remove " << filePath << std::endl;
+					else if (verbose)
+						std::cout << "rm file: " << filePath << std::endl;
+				} else if (entry->d_type == DT_DIR && std::strcmp(entry->d_name, ".") != 0 && std::strcmp(entry->d_name, "..") != 0){
+					removeAll(filePath, verbose, allowed);
+				}
+				delete filePath;
+				entry = readdir(dir);
+			}
+			closedir(dir);
+			if (removeEmptyDir(path) != 0)
+				std::cerr << "can't remove " << path << std::endl;
+			else if (verbose)
+				std::cout << "rm dir: " << path << std::endl;
+		} else if (file_exists(path)){
+			if (removeFile(path) != 0)
+				std::cerr << "can't remove " << path << std::endl;
+		}
+	}
+
+
 
 };
 

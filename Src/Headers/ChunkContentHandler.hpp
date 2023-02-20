@@ -5,16 +5,7 @@
 #ifndef CHUNCKED_
 #define CHUNCKED_
 
-# include <iostream>
-# include <map>
-# include <vector>
-# include <set>
-# include <string>
-# include <fstream>
-# include <exception>
-# include <stack>
-# include <sstream>
-# include <algorithm>
+# include <Libraries.h>
 
 
 class ChunkContentHandler{
@@ -121,7 +112,7 @@ private:
 	bool __parseNb(){
 		int i = 0;
 
-		while (_isHexChar(nbBuffer[i]))
+		while (isHexChar(nbBuffer[i]))
 			i++;
 		if (nbBuffer[i] != '\r' || nbBuffer[i + 1] != '\n')
 		{
@@ -163,11 +154,6 @@ private:
 	}
 
 
-	bool _isHexChar(char c){
-		if ((c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f') || (c >= '0' && c <= '9'))
-			return (true);
-		return (false);
-	}
 
 };
 

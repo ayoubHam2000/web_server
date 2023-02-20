@@ -1,0 +1,76 @@
+0. HTTP_TRANSFER_ENCODING=chunked
+1. CONTENT_TYPE=text/plain
+2. HTTP_USER_AGENT=PostmanRuntime/7.31.0
+3. HTTP_ACCEPT=*/*
+4. HTTP_POSTMAN_TOKEN=cf2133ae-7083-4d32-ab03-164679b54a28
+5. HTTP_HOST=localhost
+6. HTTP_ACCEPT_ENCODING=gzip, deflate, br
+7. HTTP_CONNECTION=keep-alive
+8. PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+9. SERVER_SIGNATURE=<address>Apache/2.4.54 (Debian) Server at localhost Port 80</address>
+
+10. SERVER_SOFTWARE=Apache/2.4.54 (Debian)
+11. SERVER_NAME=localhost
+12. SERVER_ADDR=172.17.0.2
+13. SERVER_PORT=80
+14. REMOTE_ADDR=172.17.0.1
+15. DOCUMENT_ROOT=/var/www/html
+16. REQUEST_SCHEME=http
+17. CONTEXT_PREFIX=/cgi-bin/
+18. CONTEXT_DOCUMENT_ROOT=/usr/lib/cgi-bin/
+19. SERVER_ADMIN=webmaster@localhost
+20. SCRIPT_FILENAME=/usr/lib/cgi-bin/simple_cgi
+21. REMOTE_PORT=63930
+22. GATEWAY_INTERFACE=CGI/1.1
+23. SERVER_PROTOCOL=HTTP/1.1
+24. REQUEST_METHOD=POST
+25. QUERY_STRING=
+26. REQUEST_URI=/cgi-bin/simple_cgi
+27. SCRIPT_NAME=/cgi-bin/simple_cgi
+End
+
+
+COMSPEC="C:\Windows\system32\cmd.exe"
+DOCUMENT_ROOT="C:/Program Files (x86)/Apache Software Foundation/Apache2.4/htdocs"
+GATEWAY_INTERFACE="CGI/1.1"
+HOME="/home/SYSTEM"
+HTTP_ACCEPT="text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+HTTP_ACCEPT_CHARSET="ISO-8859-1,utf-8;q=0.7,*;q=0.7"
+HTTP_ACCEPT_ENCODING="gzip, deflate, br"
+HTTP_ACCEPT_LANGUAGE="en-us,en;q=0.5"
+HTTP_CONNECTION="keep-alive"
+HTTP_HOST="example.com"
+HTTP_USER_AGENT="Mozilla/5.0 (Windows NT 6.1; WOW64; rv:67.0) Gecko/20100101 Firefox/67.0"
+PATH="/home/SYSTEM/bin:/bin:/cygdrive/c/progra~2/php:/cygdrive/c/windows/system32:..."
+PATHEXT=".COM;.EXE;.BAT;.CMD;.VBS;.VBE;.JS;.JSE;.WSF;.WSH;.MSC"
+PATH_INFO="/foo/bar"
+PATH_TRANSLATED="C:\Program Files (x86)\Apache Software Foundation\Apache2.4\htdocs\foo\bar"
+QUERY_STRING="var1=value1&var2=with%20percent%20encoding"
+REMOTE_ADDR="127.0.0.1"
+REMOTE_PORT="63555"
+REQUEST_METHOD="GET"
+REQUEST_URI="/cgi-bin/printenv.pl/foo/bar?var1=value1&var2=with%20percent%20encoding"
+SCRIPT_FILENAME="C:/Program Files (x86)/Apache Software Foundation/Apache2.4/cgi-bin/printenv.pl"
+SCRIPT_NAME="/cgi-bin/printenv.pl"
+SERVER_ADDR="127.0.0.1"
+SERVER_ADMIN="(server admin's email address)"
+SERVER_NAME="127.0.0.1"
+SERVER_PORT="80"
+SERVER_PROTOCOL="HTTP/1.1"
+SERVER_SIGNATURE=""
+SERVER_SOFTWARE="Apache/2.4.39 (Win32) PHP/7.3.7"
+SYSTEMROOT="C:\Windows"
+TERM="cygwin"
+WINDIR="C:\Windows"
+
+
+/image/index.html
+
+
+/aaa
+/image
+
+/
+
+
+./public/aaa/index.html

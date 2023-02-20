@@ -3,3 +3,8 @@
 /***************************************************/
 
 #include "Client.h"
+
+size_type Client::nbClients = 0;
+
+
+

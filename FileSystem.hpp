@@ -21,19 +21,19 @@
 # include <sys/stat.h>
 # include <unistd.h>
 
-namespace FileSystem{
-
+class FileSystem{
+public:
 	enum {
 		T_DIR, T_RF
 	};
 
 
-	bool file_exists(const char *path)
+	static bool file_exists(const char *path)
 	{
 		return (access(path, F_OK) == 0);
 	}
 
-	bool isDirectory(const char *path){
+	static bool isDirectory(const char *path){
 		DIR* dir = opendir(path);
 		if (dir != NULL)
 		{
@@ -43,7 +43,7 @@ namespace FileSystem{
 		return false;
 	}
 
-	void getListOfFiles(const char* path, std::vector<std::string> &list)
+	static void getListOfFiles(const char* path, std::vector<std::string> &list)
 	{
 		DIR* dir = opendir(path);
 		if (dir != NULL)
@@ -62,24 +62,24 @@ namespace FileSystem{
 		}
 	}
 
-	int removeEmptyDir(const char *path){
+	static int removeEmptyDir(const char *path){
 		return (0);
 		return (rmdir(path));
 	}
 
-	int removeFile(const char *path){
+	static int removeFile(const char *path){
 		return (0);
 		return (unlink(path));
 	}
 
-	int remove(const char *path){
+	static int remove(const char *path){
 		if (isDirectory(path))
 			return removeEmptyDir(path);
 		else
 			return removeFile(path);
 	}
 
-	char* pathJoin(const char *path, const char *name){
+	static char* pathJoin(const char *path, const char *name){
 		size_t pathLen = std::strlen(path);
 		size_t nameLen = std::strlen(name);
 		char *newPath = new char[pathLen + nameLen + 2];
@@ -89,7 +89,7 @@ namespace FileSystem{
 		return (newPath);
 	}
 
-	void	removeAll(const char *path, bool verbose = false, bool allowed = false){
+	static void	removeAll(const char *path, bool verbose = false, bool allowed = false){
 		DIR* dir = opendir(path);
 
 		//TODO: remove

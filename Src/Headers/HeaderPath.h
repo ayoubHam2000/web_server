@@ -2,8 +2,8 @@
 /*     created by TheWebServerTeam 2/18/23         */
 /***************************************************/
 
-#ifndef DUMMY_CLIENT_URL_H
-#define DUMMY_CLIENT_URL_H
+#ifndef DUMMY_CLIENT_HEADERPATH_H
+#define DUMMY_CLIENT_HEADERPATH_H
 
 #include "Libraries.h"
 
@@ -87,4 +87,4 @@ public:
 };
 
 
-#endif //DUMMY_CLIENT_URL_H
+#endif //DUMMY_CLIENT_HEADERPATH_H

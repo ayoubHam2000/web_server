@@ -5,7 +5,7 @@
 #ifndef CHUNCKED_
 #define CHUNCKED_
 
-# include <Libraries.h>
+# include "Libraries.h"
 
 
 class ChunkContentHandler{
@@ -42,7 +42,7 @@ public:
  	** @brief supply the @param arr with a list of {start_ptr (included) and end_ptr (excluded)} of the chunked content.
 	 * @return true if success else false in case of bad hex_number (big than unsigned int or malformed)
  	*/
-	bool getHttpChunkContent(const char *chunk, unsigned int chunkSize, std::vector<const char *> &arr){
+	bool getHttpChunkContent(const char *chunk, size_type chunkSize, std::vector<const char *> &arr){
 		if (chunkSize == 0) {
 			return (true);
 		}

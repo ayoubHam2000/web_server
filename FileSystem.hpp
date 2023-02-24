@@ -54,6 +54,7 @@ public:
 			{
 				if (entry->d_type == DT_REG || entry->d_type == DT_DIR)
 				{
+					std::cout << entry->d_name << std::endl;
 					list.push_back(entry->d_name);
 				}
 				entry = readdir(dir);

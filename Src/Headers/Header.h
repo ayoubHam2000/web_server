@@ -55,9 +55,9 @@ public:
 		return _protocol;
 	}
 
-	/*const std::map<std::string, std::string> &getHttpHeaders() const {
+	const std::map<std::string, std::string> &getHttpHeaders() const {
 		return _httpHeaders;
-	}*/
+	}
 
 public:
 
@@ -219,6 +219,12 @@ public:
 		std::string s(key.size(), '*');
 		std::transform(key.cbegin(), key.cend(), s.begin(), toupper);
 		return _httpHeaders.at(s);
+	}
+
+	void display(std::ostream& os) const {
+		for (std::map<std::string, std::string>::const_iterator iter = _httpHeaders.cbegin(); iter != _httpHeaders.cend(); ++iter){
+			os << iter->first << ": " << iter->second << std::endl;
+		}
 	}
 
 };

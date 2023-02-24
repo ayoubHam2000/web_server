@@ -6,69 +6,96 @@
 #define CHUNCKED_
 
 # include "Libraries.h"
-
+# include <MyBuffer.h>
 
 class ChunkContentHandler{
+public:
+	enum {
+		DONE, NONE, ERROR = -1, ERR_BUFFER_FULL = -2, ERR_BAD_NUMBER = -3
+	};
 private:
 	static const unsigned int	maxBuffer = 20;
-	unsigned long 				expectedContentSize;
-	char						nbBuffer[maxBuffer];
-	unsigned int				nbBufferCounter;
-	short 						contentEnd;
-	bool						done;
+	unsigned long 				_expectedContentSize;
+	int							_status;
+	MyBuffer					_nbBuffer;
+	int 						_endLine;
 
 private:
 	ChunkContentHandler(const ChunkContentHandler& other);
 	ChunkContentHandler& operator=(const ChunkContentHandler& other);
 public:
 
-	ChunkContentHandler(){
-		expectedContentSize = 0;
-		std::memset(nbBuffer, 0, maxBuffer);
-		nbBufferCounter = 0;
-		contentEnd = 0;
-		done = false;
-	}
+	ChunkContentHandler():
+			_expectedContentSize(0),
+			_status(NONE),
+			_nbBuffer(20, "\r\n\0"),
+			_endLine(0)
+	{}
 
 	~ChunkContentHandler(){}
 
 public:
 	bool is_done()
 	{
-		return done;
+		return (_status == DONE);
 	}
 
-	/**
- 	** @brief supply the @param arr with a list of {start_ptr (included) and end_ptr (excluded)} of the chunked content.
-	 * @return true if success else false in case of bad hex_number (big than unsigned int or malformed)
- 	*/
-	bool getHttpChunkContent(const char *chunk, size_type chunkSize, std::vector<const char *> &arr){
-		if (chunkSize == 0) {
-			return (true);
-		}
-		while (chunkSize--){
-			if (expectedContentSize == 0)
-			{
-				if (arr.size() % 2 == 1){
-					arr.push_back(chunk);
+	bool is_failed()
+	{
+		return (_status < 0);
+	}
+
+	std::string getError(){
+		if (_status == ERR_BUFFER_FULL){
+			return std::string(_nbBuffer.getBuffer(), _nbBuffer.getSize()) + "->Buffer Is Full";
+		} else if (_status == ERR_BAD_NUMBER)
+			return "Bad Number";
+		return "Error";
+	}
+
+	void	getHttpChunkContent(const char *chunk, size_type chunkSize, std::string& res){
+		size_t 		nbRead;
+		char 		buffer[chunkSize];
+		char 		*ptr;
+
+		ptr = buffer;
+		while (chunkSize > 0){
+			if (_expectedContentSize == 0){
+				if (_endLine){
+					nbRead = 1;
+					_endLine--;
+				} else {
+					nbRead = _nbBuffer.add(chunk, chunkSize);
+					if (_nbBuffer.isFull()){
+						_status = ERR_BUFFER_FULL;
+						return ;
+					}
+					if (_nbBuffer.isMatch()){
+						if (_parseNb()){
+							_nbBuffer.fullReset();
+							_endLine = 2;
+							if (_expectedContentSize == 0){
+								_status = DONE;
+								return ;
+							}
+						} else {
+							_status = ERR_BAD_NUMBER;
+							return ;
+						}
+					}
 				}
-				if (!_readNb(*chunk))
-					return (false);
-				if (done)
-					break;
 			}
-			else
-			{
-				if (arr.size() % 2 == 0)
-					arr.push_back(chunk);
-				expectedContentSize--;
+			else {
+				nbRead = std::min(chunkSize, _expectedContentSize);
+				_expectedContentSize -= nbRead;
+				std::memcpy(ptr, chunk, nbRead);
+				ptr += nbRead;
 			}
-			chunk++;
+			chunk += nbRead;
+			chunkSize -= nbRead;
 		}
-		if (arr.size() % 2 == 1){
-			arr.push_back(chunk);
-		}
-		return (true);
+		if (buffer != ptr)
+			res = std::string(buffer, ptr);
 	}
 
 public:
@@ -76,41 +103,34 @@ public:
 	//TODO: remove (just for test)
 	//file should contain CRLF
 	static void testFunction(const std::string& filePath){
-		std::vector<std::string> contentResult;
+		std::string content;
 		std::ifstream file (filePath);
 		char buffer[1001];
 		ChunkContentHandler clientChunk;
 		//int chunkedSize[] = {20};
-		int chunkedSize[] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
+		int chunkedSize[] = {5, 997, 3};
 		int nbChunks = sizeof(chunkedSize) / sizeof(int);
 		int counter = 0;
 		while (counter < nbChunks){
 			file.read(buffer, chunkedSize[counter]);
-			std::vector<const char *> res;
-			bool clientResult = clientChunk.getHttpChunkContent(buffer, file.gcount(), res);
-			std::cout << (clientResult ? "true" : "false") << std::endl;
-			if (!clientResult)
+			std::string res;
+			clientChunk.getHttpChunkContent(buffer, file.gcount(), res);
+			std::cout << "Done: " << (clientChunk.is_done() ? "true" : "false") << std::endl;
+			std::cout << "Failed: " << (clientChunk.is_failed() ? "true" : "false") << std::endl;
+			if (clientChunk.is_failed() || clientChunk.is_done())
 				break;
-			int i = 0;
-			while (i < res.size()){
-				contentResult.push_back(std::string(res[i], res[i + 1]));
-				i+=2;
-			}
-			std::cout << "Is Done: " << (clientChunk.is_done() ? "true" : "false") << std::endl;
-			if (clientChunk.is_done())
-				break;
+			content.append(res);
 			counter++;
 		}
 		std::cout << "Content: " << std::endl;
-		for (std::vector<std::string>::iterator iter = contentResult.begin(); iter != contentResult.end(); iter++){
-			std::cout << *iter;
-		}
+		std::cout << content << std::endl;
 	}
 
 private:
 
-	bool __parseNb(){
-		int i = 0;
+	bool _parseNb(){
+		const char	*nbBuffer = _nbBuffer.getBuffer();
+		int 		i = 0;
 
 		while (isHexChar(nbBuffer[i]))
 			i++;
@@ -118,43 +138,13 @@ private:
 		{
 			return (false);
 		}
-		nbBuffer[i] = 0;
 		try{
-			expectedContentSize = std::stoul(nbBuffer, NULL, 16);
+			_expectedContentSize = std::stoul(nbBuffer, NULL, 16);
 		}catch (std::exception &e){
 			return (false);
 		}
 		return (true);
 	}
-
-	bool _readNb(char c){
-		if ((contentEnd == 2 && c != '\r') || (contentEnd == 1 && c != '\n'))
-			return (false);
-		if (contentEnd != 0){
-			contentEnd--;
-			return (true);
-		}
-		if (nbBufferCounter == maxBuffer){
-			return (false);
-		}
-		nbBuffer[nbBufferCounter++] = c;
-		if (nbBufferCounter >= 2 && !std::strncmp(nbBuffer + (nbBufferCounter - 2), "\r\n", 2)){
-			if (!__parseNb())
-				return (false);
-			else{
-				std::memset(nbBuffer, 0, maxBuffer);
-				nbBufferCounter = 0;
-				contentEnd = 2;
-			}
-			if (expectedContentSize == 0){
-				done = true;
-			}
-		}
-		return (true);
-	}
-
-
-
 };
 
 #endif

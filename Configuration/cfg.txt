@@ -15,3 +15,4 @@ _BLANK -> \n|\t|\v|\r|\f
 * parse hostname:port
 * parse servername
 
+for i in {1..100}; do curl -s -o /dev/null 127.0.0.1:3030 && echo "Success" || echo "Failed"; done

@@ -26,7 +26,8 @@ public:
 					_errorPages(),
 					_locations()
 	{
-		_errorPages[404] = "";
+		_errorPages[404] = "../static/error400.html";
+		_errorPages[400] = "../static/error404.html";
 	}
 
 	ServerConfig(const ServerConfig& other){

@@ -1,0 +1,67 @@
+	void handleMultiForm(const char *chunk, size_type size){
+		if (__multiFormStatus == 0){
+			std::string boundary = "--" + _boundary + "\r\n";
+			_myBuffer.setUntil(boundary.c_str());
+			__multiFormStatus = 1;
+		}
+		while (size){
+			MyBuffer::size_type nbRead = _myBuffer.add(chunk, size);
+			chunk += nbRead;
+			size -= nbRead;
+			if (_myBuffer.isFull()){
+				_error = ERROR;
+				return ;
+			}
+			if (_myBuffer.isMatch()){
+				if (__multiFormStatus == 1){
+					if (_myBuffer.getSize() > _myBuffer.getUntilSize()){
+						std::string data(_myBuffer.getBuffer(), _myBuffer.getSize() - _myBuffer.getUntilSize());
+						writeToFile(data.c_str(), data.size());
+					}
+					_myBuffer.setUntil("\r\n");
+					_myBuffer.resetBuffer();
+					__multiFormStatus++;
+				}
+				else if (__multiFormStatus == 2){
+					//line1 = std::string(_myBuffer.getBuffer(), _myBuffer.getSize());
+					_myBuffer.resetBuffer();
+					_myBuffer.setUntil("\r\n");
+					__multiFormStatus++;
+				}
+				else if (__multiFormStatus == 3){
+					std::string contentType = std::string(_myBuffer.getBuffer(), _myBuffer.getSize());
+					if (contentType.find("Content-Type: ") != std::string::npos)
+						_fileMimeType = contentType.substr(14, contentType.size() - 14 - 2); //the size of 'Content-Type: ' \r\n
+					_myBuffer.resetBuffer();
+					if (_fileIsOpen){
+						_outFile.close();
+						_fileIsOpen = false;
+					}
+					__multiFormStatus++;
+					_myBuffer.setUntil("\r\n");
+				} else if (__multiFormStatus == 4){
+					std::string boundary = "\r\n--" + _boundary + "\r\n";
+					_myBuffer.setUntil(boundary.c_str());
+					__multiFormStatus = 1;
+					_myBuffer.resetBuffer();
+				}
+			} else {
+				if (__multiFormStatus == 1){
+					if (_myBuffer.getSize() > _myBuffer.getMatchCounter()){
+						std::string d(_myBuffer.getBuffer(), _myBuffer.getSize());
+						std::string::size_type pos = d.find("\r\n--" + _boundary + "--\r\n");
+						if (pos != std::string::npos){
+							std::string data = d.substr(0, pos);
+							writeToFile(data.c_str(), data.size());
+							_isDone = true;
+							return ;
+						} else {
+							std::string data(_myBuffer.getBuffer(), _myBuffer.getSize() - _myBuffer.getMatchCounter());
+							writeToFile(data.c_str(), data.size());
+						}
+					}
+					_myBuffer.shift();
+				}
+			}
+		}
+	}

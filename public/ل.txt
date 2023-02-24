@@ -1,0 +1,12 @@
+//request
+ -> parse header
+ -> chunked body
+ -> muti form
+
+ //response
+-> redirection
+-> index
+-> default page
+-> send file
+-> error
+-> header

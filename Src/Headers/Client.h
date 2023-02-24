@@ -10,6 +10,8 @@
 # include <Header.h>
 # include <BodyChunk.h>
 # include <Response.h>
+# include <MyBuffer.h>
+# include <ClientInfo.h>
 
 class Client {
 public:
@@ -25,40 +27,60 @@ private:
 	socketType 					_socket;
 	const socketType			_remoteSocket;
 	std::vector<ServerConfig*>	*_socketConfigs;
-	char						requestHeader[MAX_REQUEST_SIZE];
+	MyBuffer					_requestHeader;
 	socklen_t					address_length;
 	struct sockaddr_storage		address;
 	time_t 						lastResponse;
 	int 						errorFlag;
 	int 						_phase; //receiving, sending
 	bool 						_isHeaderComplete;
-	bool 						_isBodyComplete;
-	size_type 					_counter;
 	Header						_header;
 	const ServerConfig*			_serverConf;
 	const LocationConfig*		_locationConf;
 	BodyChunk					_bodyChunk;
 	Response					_response;
+	ClientInfo					_clientInfo;
 
+private:
+	//Client(const Client &other);
+	//Client& operator=(const Client &other);
 public:
 	Client(const socketType serverSocket, std::vector<ServerConfig*> *socketConfigs) :
-			_remoteSocket(),
+			_remoteSocket(serverSocket),
 			_socketConfigs(socketConfigs),
 			errorFlag(NONE),
 			lastResponse(get_time_ms()),
 			address_length(sizeof(address)),
 			_phase(WAITING_REQ),
 			_isHeaderComplete(false),
-			_isBodyComplete(false),
-			_counter(0),
 			_header(),
 			_bodyChunk(),
-			_response()
+			_response(),
+			_requestHeader(MAX_REQUEST_SIZE, "\r\n\r\n"),
+			_serverConf(NULL),
+			_locationConf(NULL),
+			_clientInfo(_header, *_serverConf, *_locationConf)
 	{
 		_socket = accept(_remoteSocket, (struct sockaddr*)(&address), &address_length);
 		if (_socket == -1){
 			errorFlag = NOT_ACCEPTED;
 		}
+
+		char address_buffer[100];
+		char service[100];
+		int s = getnameinfo(
+				(struct sockaddr*)&address, address_length,
+				address_buffer, sizeof(address_buffer),
+				service, sizeof(service),
+				NI_NUMERICSERV);
+		if (!s){
+			_clientInfo.setIpAddress(address_buffer);
+			_clientInfo.setService(service);
+		}else{
+			errorFlag = NOT_ACCEPTED;//TODO
+		}
+
+
 		nbClients++;
 	}
 	~Client(){
@@ -85,7 +107,6 @@ public:
 		return _phase;
 	}
 
-
 	//------
 
 	void setLastResponse() {
@@ -101,9 +122,23 @@ public:
 	//TOD case of reading a chunk containing the header and the body
 	//TODO if location has POST is must have (default folder to upload or upload folder set in the config)
 	//TODO Header Accept
-	//content length not begger then size_type
-	//comments
-	//Internal Server Error
+	//TODO Server Error
+	//TODO CGI
+	//TODO CONFIG
+	//Todo diff close and keep-alive
+	//Todo content length not begger then size_type
+	//Todo comments
+	//Todo Internal Server Error
+	//Todo Client OutPut Terminal
+	//Todo autoIndex
+	//Todo indexFile
+	//Todo upload folder
+	//Todo ../ ./
+	//TODO delete
+	//TODO change to clientInfo
+	//TODO if listen in non numeric change it to nemeric
+	//TODO setFullPathOfTheServer
+	//TODO htons
 	// /1/
 	// /1/
 	int	nbLocationMatch(const std::string &locServer, const std::string &locClient){
@@ -122,21 +157,19 @@ public:
 		const std::string* host = NULL;
 		if (_header.has("HOST"))
 			host = &_header.valueOf("HOST");
-		if (!host){
-			return ((*_socketConfigs)[0]);
-		} else {
-			for (std::vector<ServerConfig*>::iterator iter = _socketConfigs->begin(); iter != _socketConfigs->end(); ++iter){
+		if (host){
+			for (std::vector<ServerConfig*>::iterator iter = _socketConfigs->begin(); iter != _socketConfigs->end(); ++iter) {
 				if ((*iter)->getHost() == *host)
 					return (*iter);
 			}
 		}
-		return (NULL);
+		return ((*_socketConfigs)[0]);
 	}
 
 	const LocationConfig *getLocation(const ServerConfig &serverConfig, const std::string &path){
 		const LocationConfig *res = NULL;
 		int max = 0;
-		for (std::map<std::string, LocationConfig>::const_iterator iter = serverConfig.getLocations().cend(); iter != serverConfig.getLocations().end(); ++iter){
+		for (std::map<std::string, LocationConfig>::const_iterator iter = serverConfig.getLocations().cbegin(); iter != serverConfig.getLocations().cend(); ++iter){
 			int nbMatch = nbLocationMatch(iter->first, path);
 			if (nbMatch > max){
 				max = nbMatch;
@@ -148,15 +181,16 @@ public:
 
 	bool	checkHeaderAndSet(){
 		//check header
-		if (_header.parse(std::string(requestHeader, _counter)) == false){
+		if (_header.parse(std::string(_requestHeader.getBuffer(), _requestHeader.getSize())) == false){
 			errorFlag = BAD_REQUEST;
 			return (false);
 		}
 
 		//set
 		if (_header.getRequestType() == "GET")
-			_isBodyComplete = true;
-
+			_bodyChunk.setDone();
+		if (_header.getRequestType() == "POST" && !_header.has("Content-Length") && !_header.has("Transfer-Encoding"))
+			_bodyChunk.setDone();
 		//server config
 		_serverConf = getServerConfigForLocation();
 		if (!_serverConf){
@@ -175,41 +209,37 @@ public:
 		return (true);
 	}
 
-	void	constructHeader(char *chunk, size_type chunkSize, size_type &nbRead){
-		nbRead = std::min(MAX_REQUEST_SIZE - _counter, chunkSize);
-		std::memcpy(requestHeader + _counter, chunk, nbRead);
-		_counter += nbRead;
-		if (std::strstr(requestHeader, "\r\n\r\n")){
-			_isHeaderComplete = true;
-		} else if (nbRead != chunkSize){
-			errorFlag = BAD_REQUEST;
-		}
-	}
-
 	void 	prepareToReceiveBody(size_type chunkSize){
-		if (_isBodyComplete && chunkSize > 0)
+		if (_bodyChunk.isIsDone() && chunkSize > 0)
 			errorFlag = BAD_REQUEST;
-		if (_isBodyComplete)
+		if (_bodyChunk.isIsDone())
 			return ;
 		_bodyChunk.prepare(*_locationConf, *_serverConf, _header);
 	}
 
 	int	constructResponse(){
 		_phase = SENDING_RES;
+		_response.setResponseStatus(200);
+		_clientInfo.setContentLength(_bodyChunk.getTheCgiContentLength());
 		if (errorFlag == BAD_REQUEST){
-			_response.setErrorPage(Response::E400);
+			_response.setResponseStatus(400);
 		}else if (errorFlag == NOT_FOUND){
-			_response.setErrorPage(Response::E404);
+			_response.setResponseStatus(404);
+		}if (_bodyChunk.isIsDone() && _header.getRequestType() == "POST"){
+			_response.setResponseStatus(201);
 		}
-		_response.prepare(*_locationConf, *_serverConf, _header);
+		_response.prepare(&_clientInfo);
 		return (SUCCESS);
 	}
 
 	//client send data
 	void	handleChunk(char *chunk, size_type chunkSize){
 		if (_isHeaderComplete == false){
-			size_type nbRead = 0;
-			constructHeader(chunk, chunkSize, nbRead);
+			size_type nbRead = _requestHeader.add(chunk, chunkSize);
+			if (_requestHeader.isFull() && !_requestHeader.isMatch())
+				errorFlag = BAD_REQUEST;
+			if (_requestHeader.isMatch())
+				_isHeaderComplete = true;
 			chunk += nbRead;
 			chunkSize -= nbRead;
 			if (_isHeaderComplete == true){
@@ -219,12 +249,11 @@ public:
 					prepareToReceiveBody(chunkSize);
 			}
 		}
-		if (!_isBodyComplete && _isHeaderComplete && errorFlag == NONE && chunkSize > 0){
-			_bodyChunk.receive(chunk, chunkSize);
-			if (_bodyChunk.isIsDone())
-				_isBodyComplete = true;
+		if (!_bodyChunk.isIsDone() && _isHeaderComplete && errorFlag == NONE && chunkSize > 0){
+			if (_bodyChunk.receive(chunk, chunkSize) == BodyChunk::ERROR)
+				errorFlag = BAD_REQUEST;
 		}
-		if (errorFlag != NONE || _isBodyComplete){
+		if (errorFlag != NONE || _bodyChunk.isIsDone()){
 			constructResponse();
 		}
 	}
@@ -243,7 +272,5 @@ public:
 
 
 };
-
-(ls && pwd) > (pwd && ls)
 
 #endif //WEB_SERVER_CLIENT_H

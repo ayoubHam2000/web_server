@@ -60,7 +60,7 @@ public:
 		std::vector<SyntaxTree*> list = _syntaxTree.list;
 		for (std::vector<SyntaxTree*>::iterator iter = list.begin(); iter != list.end(); ++iter){
 			ServerConfig serverConf;
-			fillServerConf(serverConf, *list.begin());
+			fillServerConf(serverConf, *iter);
 			res.push_back(serverConf);
 		}
 	}

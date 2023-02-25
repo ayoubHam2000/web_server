@@ -1,4 +1,20 @@
 FILES = \
+	Src/Classes/BodyChunk.cpp \
+	Src/Classes/CGI.cpp \
+	Src/Classes/ChunkContentHandler.cpp \
+	Src/Classes/Client.cpp \
+	Src/Classes/ClientInfo.cpp \
+	Src/Classes/Configurations.cpp \
+	Src/Classes/Header.cpp \
+	Src/Classes/HeaderPath.cpp \
+	Src/Classes/LocationConfig.cpp \
+	Src/Classes/MyBuffer.cpp \
+	Src/Classes/MyWebServer.cpp \
+	Src/Classes/Response.cpp \
+	Src/Classes/Server.cpp \
+	Src/Classes/ServerConfig.cpp \
+	Src/Classes/SyntaxTree.cpp \
+	Src/Utils/Utils.cpp \
 	main.cpp
 
 OBJ_DIR = _OUT/
@@ -7,7 +23,7 @@ OBJ = $(addprefix $(OBJ_DIR), $(FILES:.cpp=.o))
 DEPS = $(OBJ:.o=.d)
 
 DEPFLAGS = -MMD -MF $(@:.o=.d)
-CFLAGS =  -Wall -Wextra -Werror -I ./Includes -std=c++98
+CFLAGS =  -I ./Includes -I ./Src/Headers -std=c++98
 #-Wall -Wextra -Werror
 NAME = web_server
 

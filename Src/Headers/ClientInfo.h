@@ -100,9 +100,12 @@ public:
 
 
 	bool isRequestCanHandledByCgi() const {
-		std::string ext(fileExtension(getHeader().getPath().getPath().c_str()));
-		if (getLocationConf().getCgi().find(ext) != getLocationConf().getCgi().cend()){
-			return (true);
+		const char *ptr = fileExtension(getHeader().getPath().getPath().c_str());
+		if (ptr){
+			std::string ext(ptr);
+			if (getLocationConf().getCgi().find(ptr) != getLocationConf().getCgi().cend()){
+				return (true);
+			}
 		}
 		return (false);
 	}

@@ -97,6 +97,45 @@ public:
 		return (filePath);
 	}
 
+	std::string removeDotDot(std::string path) {
+		std::string result;
+
+		// Split the input path into segments
+		std::size_t start = 0;
+		std::size_t end = path.find('/', start);
+		while (end != std::string::npos) {
+			std::string segment = path.substr(start, end - start);
+			start = end + 1;
+			end = path.find('/', start);
+
+			// Ignore "." segments
+			if (segment == ".") {
+				continue;
+			}
+
+			// Remove ".." segments by backtracking one segment in the result
+			if (segment == "..") {
+				std::size_t lastSlash = result.find_last_of('/');
+				if (lastSlash == std::string::npos) {
+					// If there are no more segments to remove, return an empty string
+					return "";
+				}
+				result = result.substr(0, lastSlash);
+			} else {
+				// Append all other segments to the result
+				result += "/" + segment;
+			}
+		}
+
+		// Append the final segment (if any) to the result
+		std::string finalSegment = path.substr(start);
+		if (finalSegment != "." && finalSegment != "..") {
+			result += "/" + finalSegment;
+		}
+
+		return result;
+	}
+
 	void prepare(ClientInfo* clientInfo){
 		_clientInfo = clientInfo;
 
@@ -104,11 +143,12 @@ public:
 		_metaVars["SERVER_PORT"] = clientInfo->getServerConf().getService();
 		_metaVars["REQUEST_METHOD"] = clientInfo->getHeader().getRequestType();
 		_metaVars["PATH_INFO"] = clientInfo->getRequestedPath();
-		_metaVars["PATH_TRANSLATED"] = clientInfo->geReqFileFullPath();
+		_metaVars["SCRIPT_FILENAME"] = removeDotDot(clientInfo->geReqFileFullPath());
 		_metaVars["SCRIPT_NAME"] = clientInfo->getCGIPath();
 		_metaVars["QUERY_STRING"] = clientInfo->getHeader().getPath().getParams();
 		_metaVars["REMOTE_ADDR"] = clientInfo->getIpAddress();
 		_metaVars["REMOTE_PORT"] = clientInfo->getService();
+		_metaVars["REDIRECT_STATUS"] = "200";
 		if (clientInfo->getHeader().has("Content-type"))
 			_metaVars["CONTENT_TYPE"] = clientInfo->getHeader().valueOf("Content-type");
 		if (clientInfo->getHeader().has("Content-length"))
@@ -134,14 +174,12 @@ public:
 			if (WIFEXITED(status) && WEXITSTATUS(status) == 0){
 				_status = DONE;
 			} else {
-				_status = ERROR;
+				_status = DONE;
 			}
 		}
 		if (_status == DONE || _status == ERROR){
 			close(_outFileFd);
-			if (_bodyFd != -1){
-				close(_bodyFd);
-			}
+			close(_bodyFd);
 		}
 	}
 

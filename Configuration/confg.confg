@@ -1,6 +1,6 @@
 server
 {
-    listen     127.0.0.1:3031
+    listen     10.11.3.8:3031
     server_name			se
     max_client_body_size 42949672
     error_page 404 ../public/errors/404.html
@@ -13,7 +13,7 @@ server
         root ../public
         index page2.html
         upload_pass ./uploads
-        cgi_pass .php ./cgi-bin/php-cgi
+        cgi_pass .php /Users/aben-ham/.1337/projects/web_server/cgi_bin/php-cgi
         cgi_pass .py /usr/local/bin/python3
     }
     location /planet {

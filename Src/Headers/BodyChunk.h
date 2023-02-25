@@ -28,6 +28,7 @@ private:
 	ChunkContentHandler _chunkHandler;
 	MyBuffer			_myBuffer;
 	std::ofstream 		_outFile;
+	std::string			_filePath;
 	int 				_error;
 
 	int 				__multiFormStatus;
@@ -52,13 +53,18 @@ public:
 			_contentTypeHeader(),
 			_fileMimeType(),
 			_myBuffer(read_chunk_size + 500), //max_read_size
-		__multiFormStatus(0),
+			__multiFormStatus(0),
 			__nbRead(0),
+			_filePath(),
 			_error(0),
 			_theCGIContentLength(0)
 	{}
 	~BodyChunk(){}
 public:
+
+	const std::string &getLastCreatedFilePath() const {
+		return _filePath;
+	}
 
 	size_type getTheCgiContentLength() const {
 		return _theCGIContentLength;
@@ -144,10 +150,10 @@ public:
 		if (!_fileIsOpen){
 			_fileIsOpen = true;
 			std::string ext = getExtension(_fileMimeType);
-			std::string filePath = _uploadFolder + "/" + _generateRandomName() + ext;
-			_outFile.open(filePath);
+			_filePath = _uploadFolder + "/" + _generateRandomName() + ext;
+			_outFile.open(_filePath);
 			if (!_outFile.is_open())
-				throw std::runtime_error("Can't open " + filePath);
+				throw std::runtime_error("Can't open " + _filePath);
 		}
 		_outFile.write(chunk, size);
 		if (_outFile.bad()) {

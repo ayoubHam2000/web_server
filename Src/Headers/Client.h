@@ -41,7 +41,7 @@ private:
 	Response					_response;
 	ClientInfo					_clientInfo;
 
-private:
+//private:
 	//Client(const Client &other);
 	//Client& operator=(const Client &other);
 public:
@@ -59,7 +59,7 @@ public:
 			_requestHeader(MAX_REQUEST_SIZE, "\r\n\r\n"),
 			_serverConf(NULL),
 			_locationConf(NULL),
-			_clientInfo(_header, *_serverConf, *_locationConf)
+			_clientInfo(&_header, NULL, NULL)
 	{
 		_socket = accept(_remoteSocket, (struct sockaddr*)(&address), &address_length);
 		if (_socket == -1){
@@ -83,9 +83,11 @@ public:
 
 		nbClients++;
 	}
+
 	~Client(){
 		nbClients--;
 	};
+
 public:
 	const socketType getSocket() const {
 		return _socket;
@@ -206,6 +208,8 @@ public:
 			errorFlag = METHOD_NOT_ALLOWED;
 			return (false);
 		}
+		_clientInfo.setServerConf(_serverConf);
+		_clientInfo.setLocationConf(_locationConf);
 		return (true);
 	}
 
@@ -228,6 +232,8 @@ public:
 		}if (_bodyChunk.isIsDone() && _header.getRequestType() == "POST"){
 			_response.setResponseStatus(201);
 		}
+		_response.setClientInfo(&_clientInfo);
+		_clientInfo.setCreatedFile(_bodyChunk.getLastCreatedFilePath());
 		_response.prepare(&_clientInfo);
 		return (SUCCESS);
 	}

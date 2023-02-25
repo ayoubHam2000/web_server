@@ -11,19 +11,20 @@
 
 class ClientInfo {
 private:
-	const Header&				_header;
-	const ServerConfig&			_serverConf;
-	const LocationConfig&		_locationConf;
+	const Header*				_header;
+	const ServerConfig*			_serverConf;
+	const LocationConfig*		_locationConf;
 	size_t 						_contentLength;
 	std::string 				_service;
 	std::string 				_ipAddress;
+	std::string 				_createdFile;
 private:
 	ClientInfo();
 	ClientInfo(const ClientInfo&);
 	ClientInfo& operator=(const ClientInfo&);
 
 public:
-	ClientInfo(const Header &header, const ServerConfig &serverConf, const LocationConfig &locationConf) :
+	ClientInfo(const Header *header, const ServerConfig *serverConf, const LocationConfig *locationConf) :
 		_header(header),
 		_serverConf(serverConf),
 		_locationConf(locationConf),
@@ -32,20 +33,32 @@ public:
 		_ipAddress()
 		{}
 
-	~ClientInfo();
+	~ClientInfo(){};
 
 public:
 
+	void setHeader(const Header *header) {
+		_header = header;
+	}
+
+	void setServerConf(const ServerConfig *serverConf) {
+		_serverConf = serverConf;
+	}
+
+	void setLocationConf(const LocationConfig *locationConf) {
+		_locationConf = locationConf;
+	}
+
 	const Header &getHeader() const {
-		return _header;
+		return *_header;
 	}
 
 	const ServerConfig &getServerConf() const {
-		return _serverConf;
+		return *_serverConf;
 	}
 
 	const LocationConfig &getLocationConf() const {
-		return _locationConf;
+		return *_locationConf;
 	}
 
 	size_t getContentLength() const {
@@ -58,6 +71,10 @@ public:
 
 	const std::string &getIpAddress() const {
 		return _ipAddress;
+	}
+
+	const std::string &getCreatedFile() const {
+		return _createdFile;
 	}
 
 	//Setters
@@ -74,37 +91,41 @@ public:
 		_ipAddress = ipAddress;
 	}
 
+	void setCreatedFile(const std::string &createdFile) {
+		_createdFile = createdFile;
+	}
+
 public:
 
 
 
 	bool isRequestCanHandledByCgi() const {
-		std::string fileExtension(_header.getPath().getPath().c_str());
-		if (_locationConf.getCgi().find(fileExtension) != _locationConf.getCgi().cend()){
+		std::string ext(fileExtension(getHeader().getPath().getPath().c_str()));
+		if (getLocationConf().getCgi().find(ext) != getLocationConf().getCgi().cend()){
 			return (true);
 		}
 		return (false);
 	}
 
 	const std::string& getCGIPath() const {
-		std::string fileExtension(_header.getPath().getPath().c_str());
-		return _locationConf.getCgi().find(fileExtension)->second;
+		std::string ext(fileExtension(getHeader().getPath().getPath().c_str()));
+		return getLocationConf().getCgi().find(ext)->second;
 	}
 
 	const std::string& getRequestedPath() const {
-		return _header.getPath().getPath();
+		return getHeader().getPath().getPath();
 	}
 
 	const std::string& getErrorPage(int status) const{
-		return _serverConf.getErrorPages().at(status);
+		return getServerConf().getErrorPages().at(status);
 	}
 
 	std::string getRequestedFile() const{
-		return getRequestedPath().substr(_locationConf.getLocation().size());
+		return getRequestedPath().substr(getLocationConf().getLocation().size());
 	}
 
 	std::string getReqFileRelativePath() const{
-		return _locationConf.getRootFolder() + "/" + getRequestedFile();
+		return getLocationConf().getRootFolder() + "/" + getRequestedFile();
 	}
 
 	std::string geReqFileFullPath() const{

@@ -5,6 +5,7 @@
 #include "MyWebServer.h"
 #include "MyBuffer.h"
 #include "FileSystem.hpp"
+#include "Client.h"
 
 static void _handler(int sig, siginfo_t *, void *p){
 	if (sig == SIGTERM || sig == SIGINT || sig == SIGQUIT){
@@ -38,23 +39,19 @@ static void	initSignals(){
 
 
 void start(const std::string &confPath){
-	/*MyWebServer	myWebServer;
+	MyWebServer	myWebServer;
 
 	initSignals();
 	myWebServer.setConfigurations(confPath);
 	myWebServer.setServers();
 	myWebServer.startWebServer();
-	myWebServer.stopWebServer();*/
+	myWebServer.stopWebServer();
 
 
-	char cwd[1024];
+
 
 	// Get the current working directory
-	if (getcwd(cwd, sizeof(cwd)) != NULL) {
-		std::cout << "Current working directory: " << cwd << std::endl;
-	} else {
-		std::perror("getcwd() error");
-	}
+
 
 	//ChunkContentHandler::testFunction(confPath);
 

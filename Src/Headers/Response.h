@@ -63,6 +63,10 @@ public:
 		_responseStatus = errorPage;
 	}
 
+	void setClientInfo(ClientInfo *clientInfo) {
+		_clientInfo = clientInfo;
+	}
+
 public:
 
 	std::string getDate() {
@@ -181,8 +185,8 @@ public:
 		}
 	}
 
-	void	sendHeader(const std::string& status, const std::string& info){
-		_headerStream << "HTTP/1.1 " << status << "\r\n";
+	void	sendHeader(int status, const std::string& info){
+		_headerStream << "HTTP/1.1 " << getStatusDescription(status) << "\r\n";
 		_headerStream << "Date: " << getDate() << "\r\n";
 		_headerStream << "Server: WebServer1.0 (Mac)\r\n";
 		if (!info.empty())
@@ -195,7 +199,7 @@ public:
 		std::ostringstream info;
 		info << "Location: " << location << "\r\n";
 		info << "Content-Length: 0\r\n";
-		sendHeader("301 Moved Permanently", info.str());
+		sendHeader(301, info.str());
 	}
 
 	void	printClientInfo(std::ostream &os){
@@ -213,6 +217,12 @@ public:
 		os << YEL"------------------------------------"RESET << std::endl;
 	}
 
+	void 	preparePointers(){
+		_headerData = _headerStream.str();
+		_ptr = _headerData.c_str();
+		_counter = _headerData.size();
+	}
+
 	void	prepare(ClientInfo* clientInfo){
 		_isPrepared = true;
 		_clientInfo = clientInfo;
@@ -223,25 +233,41 @@ public:
 		}
 		if (_responseStatus < 300){ //200
 			if (clientInfo->isRequestCanHandledByCgi()){
-				_cgi.prepare(_clientInfo);
+				try{
+					_cgi.prepare(_clientInfo);
+				}catch (...){
+					_responseStatus = 400;
+					prepare(clientInfo);
+					return ;
+				}
 			}else{
 				if (_responseStatus == 201){
-					sendHeader("201 Success", "");
+					sendHeader(201, "");
 				}
 				else if (_responseStatus == 200){
 					sendFile(_clientInfo->getReqFileRelativePath());
 				}
 			}
 		}
-		_headerData = _headerStream.str();
-		_ptr = _headerData.c_str();
-		_counter = _headerData.size();
+		preparePointers();
 	}
 
 	void	sendData(socketType sock){
 		if (!_isPrepared || !_ptr){
 			std::cout << "Can't Send Data" << std::endl;
 			return;
+		}
+		if (_cgi.isPrepared() && _cgi.getStatus() != CGI::DONE){
+			_cgi.read();
+			if (_cgi.getStatus() == CGI::DONE){
+				sendFile(_cgi.getOutFilePath());
+				preparePointers();
+			} else if (_cgi.getStatus() == CGI::ERROR){
+				sendHeader(500, "");
+				preparePointers();
+			} else {
+				return ;
+			}
 		}
 		if (!_headerDone){
 			size_type nbSend = send(sock, _ptr, _counter, 0);

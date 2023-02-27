@@ -18,7 +18,7 @@ bool HeaderParser::isDoneParsing() const {
 }
 
 bool HeaderParser::isDelimeter(char c, std::string &delimeter) {
-	for (int i = 0; i < delimeter.length(); i++)
+	for (size_t i = 0; i < delimeter.length(); i++)
 	{
 		if (c == delimeter[i])
 			return (true);

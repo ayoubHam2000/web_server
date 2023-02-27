@@ -55,7 +55,7 @@ void Server::createSocket() {
 }
 
 void Server::addClientSocket(std::pair<fd_set, fd_set> &ioSocket) {
-	for (int i = 0; i < _clients.getNumberClient(); i++)
+	for (size_t i = 0; i < _clients.getNumberClient(); i++)
 	{
 		FD_SET(_clients[i].socket, &ioSocket.first);
 		FD_SET(_clients[i].socket, &ioSocket.second);

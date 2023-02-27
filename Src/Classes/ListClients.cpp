@@ -3,7 +3,7 @@
 ListClients::ListClients() {}
 
 int ListClients::getClient(int clientSocket) const {
-	for (int i = 0; i < _clients.size(); i++)
+	for (size_t i = 0; i < _clients.size(); i++)
 	{
 		if (_clients[i].socket == clientSocket)
 			return (i);

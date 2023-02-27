@@ -12,7 +12,7 @@
 
 #include "DeleteRequest.hpp"
 
-void DeleteRequest::handleRequest(std::string &body, size_t size, Client &client)
+void DeleteRequest::handleRequest(std::string &, size_t , Client &client)
 {
 	client.isForCgi = false;
 	char* path = strcpy(new char[client.path.length() + 1], client.path.c_str());

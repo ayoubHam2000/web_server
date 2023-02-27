@@ -12,7 +12,7 @@
 
 #include "GetRequest.hpp"
 
-void GetRequest::handleRequest(std::string &body, size_t size, Client &client)
+void GetRequest::handleRequest(std::string &body, size_t , Client &client)
 {
 	if (!body.empty())
 		client.set_response_code(BAD_REQUEST);

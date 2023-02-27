@@ -117,7 +117,7 @@ void PostRequest::handleRequest(std::string &body, size_t size, Client &client)
     {
         if(is_chunked)
         {
-            for (int i = 0; i < chunks.size(); i +=2)
+            for (size_t i = 0; i < chunks.size(); i +=2)
             {
                 std::string chunk_body(chunks[i],chunks[i + 1]- chunks[i]);
                 if(!handle_boundary(chunk_body,size,client))
@@ -161,9 +161,9 @@ void PostRequest::write_body(std::string& body, size_t size, size_t total_size)
     fs.Write_chunk(body,size);
 }
 
-void PostRequest::write_body(std::vector<const char *>  &chunks, size_t size)
+void PostRequest::write_body(std::vector<const char *>  &chunks, size_t )
 {
-    for (int i = 0; i < chunks.size(); i +=2)
+    for (size_t i = 0; i < chunks.size(); i +=2)
     {
         const char *a =  chunks[i];
         int _size = chunks[i + 1] - chunks[i];
@@ -185,7 +185,7 @@ void PostRequest::setBodyAsFinished(Client &client, StatusCode responseCode)
 	client.set_response_code(responseCode);
 }
 
-bool PostRequest::handle_boundary(std::string &body, size_t size, Client &client)
+bool PostRequest::handle_boundary(std::string &body, size_t , Client &client)
 {
 	size_t total_size = body.size();
     if (!boundary_handler.is_initialized())

@@ -131,8 +131,8 @@ void ServerConfigs::addErrorPage(int errorCode, std::string path) {
 }
 
 Location &ServerConfigs::getBestMatchedLocation(std::string &path) {
-	int idxBestLocation = 0;
-	int maxLenMatched = 1;
+	size_t idxBestLocation = 0;
+	size_t maxLenMatched = 1;
 	for (size_t i = _locations.size() - 1 ; i > 0; i--)
 	{
 		if (_locations[i].isRouteMatch(path))

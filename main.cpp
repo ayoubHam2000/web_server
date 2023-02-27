@@ -81,12 +81,11 @@ int main(int ac , char **av)
 				ft::Http http(reads, writes, clients, server);
 				if (FD_ISSET(server.getSocket(), &readyReads))
 					server.addClient(maxSocketSoFar, reads, writes);
-				for (int i = 0; i < clients.getNumberClient(); i++)
+				for (size_t i = 0; i < clients.getNumberClient(); i++)
 				{
-					int sizeClient = clients.getNumberClient();
 					if (FD_ISSET(clients[i].socket, &readyReads))
 						http.getRequest(i,xs.second);
-					if (i >= 0 && i < clients.getNumberClient() && FD_ISSET(clients[i].socket, &readyWrites) && clients[i].body_is_done())
+					if (i < clients.getNumberClient() && FD_ISSET(clients[i].socket, &readyWrites) && clients[i].body_is_done())
 					{
 						if (clients[i].isForCgi && clients[i].cgiHandler.getStatus() != CGI::DONE)
 							clients[i].cgiHandler.read();

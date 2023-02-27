@@ -1,28 +1,63 @@
+FILES = \
+	Src/Classes/A_Request.cpp \
+	Src/Classes/A_Response.cpp \
+	Src/Classes/BoundaryHandler.cpp \
+	Src/Classes/CGI.cpp \
+	Src/Classes/CGIResponse.cpp \
+	Src/Classes/ChunckContentHandler.cpp \
+	Src/Classes/Client.cpp \
+	Src/Classes/ClientInfos.cpp \
+	Src/Classes/configParser/ConfigParser.cpp \
+	Src/Classes/configParser/Location.cpp \
+	Src/Classes/configParser/ServerConfigs.cpp \
+	Src/Classes/DeleteRequest.cpp \
+	Src/Classes/FileSystem.cpp \
+	Src/Classes/GetRequest.cpp \
+	Src/Classes/HeaderPath.cpp \
+	Src/Classes/Http.cpp \
+	Src/Classes/ListClients.cpp \
+	Src/Classes/NResponse.cpp \
+	Src/Classes/PostRequest.cpp \
+	Src/Classes/requestParser/HeaderParser.cpp \
+	Src/Classes/Server.cpp \
+	Src/Classes/static/ContentTypes.cpp \
+	Src/Classes/static/StaticConfig.cpp \
+	Src/Classes/static/StaticResponseMessages.cpp \
+	Src/Classes/static/StaticResponsePages.cpp \
+	Src/Classes/static/SupportedMethods.cpp \
+	Src/Utils/HostsManagement.cpp \
+	Src/Utils/Utils.cpp \
+	main.cpp
+
+OBJ_DIR = _OUT/
+
+OBJ = $(addprefix $(OBJ_DIR), $(FILES:.cpp=.o))
+DEPS = $(OBJ:.o=.d)
+
+DEPFLAGS = -MMD -MF $(@:.o=.d)
+CFLAGS =  -I ./Src/Includes -I ./Src/Headers  -Wall -Wextra -Werror -std=c++98
+#-Wall -Wextra -Werror
 NAME = webserv
 
-SRCS = main.cpp HostsManagement.cpp filemanagement.cpp A_Request.cpp GetRequest.cpp PostRequest.cpp  DeleteRequest.cpp \
-		client.cpp utils/utils.cpp CGI.cpp BoundaryHandler.cpp  CGIResponse.cpp A_Response.cpp NResponse.cpp 
+all: $(NAME)
 
-OBJS = ${SRCS:.c=.o}
+$(NAME): $(OBJ)
+	c++ $(OBJ) -o $(NAME)
 
-CC = c++ -fsanitize=address
+$(OBJ): $(OBJ_DIR)%.o:%.cpp
+	@mkdir -p $(dir $@)
+	c++ $(CFLAGS) -c $(@:$(OBJ_DIR)%.o=%.cpp) $(DEPFLAGS) -o $(@)
 
-RM = rm -f
+-include $(DEPS)
 
-# CFLAGS = -Wall -Wextra -Werror -std=c++98
-CFLAGS = -std=c++11
+clean:
+	rm -rf _OUT
 
-all : $(NAME)
+fclean: clean
+	rm -f $(NAME)
 
-$(NAME) : $(SRCS)
-	$(CC) $(CFLAGS) $(SRCS) -o $(NAME)
+re: fclean all
 
-clean :
-	$(RM) $(NAME)
 
-fclean : clean
-	$(RM) $(NAME)
 
-re : fclean all
 
-.PHONY : all clean fclean re bonus

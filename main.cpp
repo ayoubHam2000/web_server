@@ -10,24 +10,9 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-
 #include "webserv.hpp"
 
 std::map<std::string, ServerMap > servers;
-
-std::vector<std::map <std::string, int > > StaticConfig::SERVER_CONFIGS = StaticConfig::MakeServerConfigVector();
-
-
-
-std::map <std::string, std::string > ContentTypes::S_CONTENT_TYPES_MAPPING =  ContentTypes::S_setContentTypesMapping();
-std::map <std::string, std::string > ContentTypes::S_EXTENTIONS_MAPPING =  ContentTypes::S_setExtentionsMapping();
-
-
-std::map <std::string, bool> SupportedMethods::SUPPORTED_METHODS =  SupportedMethods::S_SetSupportedMethods();
-
-
-std::map < StatusCode  , std::string> StaticResponseMessages::MAPPING_RESPONSE_CODE_TO_MESSAGES = StaticResponseMessages::S_initResponseMessages();
-
 
 void handler(int sig){
 	if (sig == SIGINT){
@@ -54,9 +39,6 @@ std::string readFile(std::string file)
 	}
 	return (fileContents);
 };
-
-
-
 
 int main(int ac , char **av)
 {
@@ -89,10 +71,11 @@ int main(int ac , char **av)
 				fprintf(stderr, "select() failed. (%d)\n", GETSOCKETERRNO());
 				break;
 			}
-			for (auto &xs : servers)
-			{
+
+			for (std::map<std::string, ServerMap >::iterator iter = servers.begin(); iter != servers.end(); ++iter){
+				std::map<std::string, ServerMap >::value_type& xs = *iter;
 				// first server with that ip + port of different host_names
-				auto &ser = *(xs.second.begin()); 
+				ServerMap::iterator::value_type &ser = *(xs.second.begin());
 				Server &server = ser.second;//getting server from the map
 				ListClients &clients = server.getClients();
 				ft::Http http(reads, writes, clients, server);
@@ -115,7 +98,7 @@ int main(int ac , char **av)
 		}
 		catch (std::exception &e)
 		{
-			std::cout << "error happend " <<  e.what() << std::endl;
+			std::cout << "error  " <<  e.what() << std::endl;
 			continue;
 		}
 	}

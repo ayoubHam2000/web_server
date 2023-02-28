@@ -129,12 +129,15 @@ public:
 // writeToFile
 /*****************************************************************/
 
-	void writeToFile(const char *chunk, size_type size){
+	void writeToFile(const char *chunk, size_type size, bool isForCgi = false){
 		if (size == 0)
 			return ;
 		if (!_outFile.is_open()){
 			std::string ext = getExtension(_fileMimeType);
-			_filePath = _uploadFolder + "/" + FileSystem::generateRandomName() + ext;
+			if (isForCgi)
+				_filePath = "/tmp/" + FileSystem::generateRandomName() + ext;
+			else
+				_filePath = _uploadFolder + "/" + FileSystem::generateRandomName() + ext;
 			_outFile.open(_filePath);
 			if (!_outFile.is_open())
 				throw std::runtime_error(TRACK_WHERE + "Can't open " + _filePath);
@@ -208,12 +211,16 @@ public:
 
 	void writeChunk(const char *chunk, size_type size){
 		if (_isMultiFormData){
-			//writeToFile(chunk, size);
-			handleMultiForm(chunk, size);
+			if (_clientInfo.isRequestCanHandledByCgi()){
+				writeToFile(chunk, size, true);
+			} else {
+				handleMultiForm(chunk, size);
+			}
 		}else{
 			writeToFile(chunk, size);
 		}
-		closeFile();
+		if (_status == DONE)
+			closeFile();
 	}
 
 	void receiveUtil(const char *chunk, size_type size){
@@ -230,8 +237,6 @@ public:
 				_status = BAD_REQUEST;
 				return ;
 			}
-			if (_chunkHandler.is_done())
-				_status = DONE;
 			chunk = newChunk.c_str();
 			size = newChunk.size();
 			_theCGIContentLength += size;
@@ -239,6 +244,8 @@ public:
 				_status = BODY_TOO_BEG;
 				return ;
 			}
+			if (_chunkHandler.is_done())
+				_status = DONE;
 		} else {
 			size = std::min(size, _contentLength);
 			_contentLength -= size;

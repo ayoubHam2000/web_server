@@ -76,7 +76,7 @@ public:
 							_endLine = 2;
 							if (_expectedContentSize == 0){
 								_status = DONE;
-								return ;
+								break ;
 							}
 						} else {
 							_status = ERR_BAD_NUMBER;

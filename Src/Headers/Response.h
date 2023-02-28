@@ -25,7 +25,7 @@ private:
 	CGI											_cgi;
 	int 								_responseStatus;
 private:
-	std::map<std::string, std::string>	_theHeaders;
+	std::map<std::string, std::vector<std::string> >	_theHeaders;
 	std::string 						_bodyContent;
 	std::ifstream						_file;
 	size_type 							_fileSize;
@@ -124,12 +124,16 @@ private:
 		std::string k = key;
 		capitalize(k);
 		if (_theHeaders.find(k) == _theHeaders.end()){
-			_theHeaders[k] = value;
+			_theHeaders[k] = std::vector<std::string>();
+			_theHeaders[k].push_back(value);
 		} else {
-			if (flag == OVERRIDE)
-				_theHeaders[k] = value;
-			else if (flag == APPEND)
-				_theHeaders[k] += "; " + value;
+			if (flag == OVERRIDE){
+				_theHeaders[k] = std::vector<std::string>();
+				_theHeaders[k].push_back(value);
+			}
+			else if (flag == APPEND){
+				_theHeaders[k].push_back(value);
+			}
 		}
 	}
 
@@ -138,7 +142,7 @@ private:
 	}
 
 	const std::string& headerValueOf(const std::string& key){
-		return (_theHeaders.at(key));
+		return (_theHeaders.at(key)[0]);
 	}
 
 	std::string headerConnection(int status){
@@ -234,6 +238,7 @@ private:
 		if (FileSystem::isDirectory(pagePath.c_str())){
 			std::string indexFile = findIndexFile();
 			if (!indexFile.empty()){
+				_fileRelativePath = "pp.html";
 				sendResource(indexFile);
 			} else if (_clientInfo->getLocationConf().isAutoIndex()){
 				getIndexPage(pagePath);
@@ -270,6 +275,7 @@ private:
 				return (false);
 			std::string key = line.substr(0, pos);
 			std::string value = trim(line.substr(pos + 1));
+			std::cout << key << "========================= " << value << std::endl;
 			for (std::string::iterator iter = key.begin(); iter != key.end(); ++iter){
 				if (*iter != '-' && !std::isalnum(*iter))
 					return (false);
@@ -324,6 +330,7 @@ private:
 /*****************************************************************/
 
 	void	writeResponsePage(){
+		_fileRelativePath = _clientInfo->getReqFileRelativePath();
 		if (_clientInfo->getHeader().getRequestType() == "DELETE"){
 			FileSystem::removeAll(_clientInfo->getReqFileRelativePath().c_str());
 		}
@@ -339,7 +346,6 @@ private:
 				_bodyContent = "Success";
 			}
 			else if (_responseStatus == 200){
-				_fileRelativePath = _clientInfo->getReqFileRelativePath();
 				sendResource(_fileRelativePath);
 			}
 		}
@@ -465,8 +471,10 @@ private:
 		}
 
 		oss << "HTTP/1.1 " + status + "\r\n";
-		for (std::map<std::string, std::string>::iterator iter = _theHeaders.begin(); iter != _theHeaders.end(); ++iter){
-			oss << iter->first << ": " << iter->second << "\r\n";
+		for (std::map<std::string, std::vector<std::string> >::iterator iter = _theHeaders.begin(); iter != _theHeaders.end(); ++iter){
+			for (std::vector<std::string>::iterator s = iter->second.begin(); s != iter->second.end(); ++s){
+				oss << iter->first << ": " << *s << "\r\n";
+			}
 		}
 		oss << "\r\n";
 		std::cout << "Server Response: " << std::endl << oss.str() << std::endl;

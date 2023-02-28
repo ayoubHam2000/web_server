@@ -6,7 +6,7 @@
 /*   By: klaarous <klaarous@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/28 16:34:04 by klaarous          #+#    #+#             */
-/*   Updated: 2023/02/28 15:04:07 by klaarous         ###   ########.fr       */
+/*   Updated: 2023/02/28 16:44:33 by klaarous         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -82,12 +82,34 @@ int main(int ac , char **av)
 					server.addClient(maxSocketSoFar, reads, writes);
 				for (size_t i = 0; i < clients.getNumberClient(); i++)
 				{
-					if (FD_ISSET(clients[i].socket, &readyReads))
-						http.getRequest(i,xs.second);
+					try
+					{
+						if (FD_ISSET(clients[i].socket, &readyReads))
+							http.getRequest(i,xs.second);
+					}
+					catch(const std::exception& e)
+					{
+						clients[i].set_response_code(INTERNAL_SERVER_ERROR);
+						clients[i].finished_body();
+						clients[i].isForCgi = false;
+					}
+					
+					
 					if (i < clients.getNumberClient() && FD_ISSET(clients[i].socket, &readyWrites) && clients[i].body_is_done())
 					{
-						if (clients[i].isForCgi && clients[i].cgiHandler.getStatus() != CGI::DONE)
-							clients[i].cgiHandler.read();
+						if (clients[i].isForCgi)
+						{
+							if (clients[i].cgiHandler.getStatus() != CGI::DONE)
+							{
+								clients[i].cgiHandler.read();
+								if (clients[i].cgiHandler.getStatus() == CGI::ERROR)
+								{
+									clients[i].set_response_code(INTERNAL_SERVER_ERROR);
+									clients[i].isForCgi = false;
+								}
+							}
+						}
+						
 						if (clients[i].isForCgi == false || clients[i].cgiHandler.getStatus() == CGI::DONE)
 							http.sendResponse(i);
 					}

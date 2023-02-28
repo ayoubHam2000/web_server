@@ -79,8 +79,14 @@ void ft::Http::getRequest(int Client_Number, std::map<std::string, Server> &Serv
 	}
 }
 
-void ft::Http::sendResponse(int Client_Number) {
+void ft::Http::sendResponse(int Client_Number) 
+{
 	Client &client = _clients[Client_Number];
+	if (client.clientInfos._responseHandler->isHeaderSend() == false && client.sendError)
+	{
+		delete client.clientInfos._responseHandler;
+		client.clientInfos._responseHandler = new NResponse();
+	}
 	A_Response *response =  client.clientInfos._responseHandler;
 	if (response->isHeaderSend() == false)
 	{

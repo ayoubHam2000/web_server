@@ -6,7 +6,7 @@
 /*   By: klaarous <klaarous@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/25 15:58:42 by klaarous          #+#    #+#             */
-/*   Updated: 2023/02/28 13:30:26 by klaarous         ###   ########.fr       */
+/*   Updated: 2023/02/28 16:08:04 by klaarous         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -148,8 +148,8 @@ void CGI::read(){
 	if (pid == -1){
 		_status = ERROR;
 	} else if (pid != 0){
-		if (WIFEXITED(status) && WEXITSTATUS(status) == 0){
-			_status = DONE;
+		if (WIFSIGNALED(_status)){
+			_status = ERROR;
 		} else {
 			_status = DONE;
 		}
@@ -161,7 +161,8 @@ void CGI::read(){
 }
 
 
-void CGI::_execCGI(char **args, char **env, int bodyFd){
+void CGI::_execCGI(char **args, char **env, int bodyFd)
+{
 	_CGIPid = fork();
 	if (_CGIPid == -1)
 		throw std::runtime_error("fork Failed");
@@ -175,7 +176,10 @@ void CGI::_execCGI(char **args, char **env, int bodyFd){
 }
 
 void CGI::_execCGI(){
+
+	
 	std::string cgiPath = _clientInfos->_cgiPath;
+	std::cout << "path == " << cgiPath << std::endl;
 	std::string filePath = FileSystem::getFullPath(_clientInfos->_indexPath);
 
 	//args
@@ -186,6 +190,9 @@ void CGI::_execCGI(){
 	args[1] = new char[filePath.size() + 1];
 	std::strcpy(args[1], filePath.c_str());
 	args[2] = NULL;
+
+	if (access(args[0], F_OK | X_OK))
+		throw std::runtime_error("CGI Open Failed");
 
 	//env
 	char **env = new char*[_metaVars.size() + 1];

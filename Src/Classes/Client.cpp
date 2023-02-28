@@ -6,7 +6,7 @@
 /*   By: klaarous <klaarous@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/09 12:38:10 by klaarous          #+#    #+#             */
-/*   Updated: 2023/02/28 14:23:27 by klaarous         ###   ########.fr       */
+/*   Updated: 2023/02/28 16:50:02 by klaarous         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -158,6 +158,7 @@ void Client::createResponseFile()
 		responseCode = INTERNAL_SERVER_ERROR;
 		createResponseFile();
 	}
+	//std::cout << "file created : " << path << std::endl;
 }
 
 

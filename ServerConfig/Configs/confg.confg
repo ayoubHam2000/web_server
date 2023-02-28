@@ -1,6 +1,6 @@
 server 
 {
-    listen			localhost:3031
+    listen			localhost:3030
     server_name			server_1
     #max_client_body_size  1000000
     error_page 404 public/errors/404.html

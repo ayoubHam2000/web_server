@@ -6,7 +6,7 @@
 /*   By: klaarous <klaarous@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/12 17:48:36 by mel-amma          #+#    #+#             */
-/*   Updated: 2023/02/28 13:33:36 by klaarous         ###   ########.fr       */
+/*   Updated: 2023/02/28 16:45:58 by klaarous         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,25 +54,23 @@ bool PostRequest::open_file(std::string &contentType, Client &client)
 		pathDir = "/tmp/";
 	else
 		pathDir = client.clientInfos._bestLocationMatched->getUploadPass();
-	if (!FileSystem::isDirectory(pathDir.c_str()))
+	if (FileSystem::isDirectory(pathDir.c_str()))
 	{
-		int check = mkdir(pathDir.c_str(),0777);
- 
-    	// check if directory is created or not
-		if (check)
-		{
-			setBodyAsFinished(client, INTERNAL_SERVER_ERROR);
-			return (false);
-		}
+		pathDir += "_upload";
+		// upload_store check if its there, check upload pass or just put in default upload path
+		fs = FileSystem(pathDir /*get best match*/, WRITE, ContentTypes::getExtention(contentType));
+		fs.open();
+		if (client.isForCgi)
+			client.clientInfos._cgiFilePath = fs.getPath();
+		file_initialized = true;
+		return (true);
 	}
-	pathDir += "_upload";
-	// upload_store check if its there, check upload pass or just put in default upload path
-	fs = FileSystem(pathDir /*get best match*/, WRITE, ContentTypes::getExtention(contentType));
-	fs.open();
-	if (client.isForCgi)
-		client.clientInfos._cgiFilePath = fs.getPath();
-	file_initialized = true;
-	return (true);
+	else
+	{
+		setBodyAsFinished(client, FORBIDDEN);
+		return (false);
+	}
+	
 }
 
 /*  send in the buffer itself or its address and the size to write  */

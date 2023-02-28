@@ -6,7 +6,7 @@
 /*   By: klaarous <klaarous@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/09 12:38:10 by klaarous          #+#    #+#             */
-/*   Updated: 2023/02/28 17:13:44 by klaarous         ###   ########.fr       */
+/*   Updated: 2023/02/28 21:52:37 by klaarous         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -199,7 +199,14 @@ void Client::tryOpenRessource()
 				set_response_code(FORBIDDEN);
 		}	
 		else
-			fp = fopen(path.c_str(), "rb");
+		{
+			if (FileSystem::file_exists(path.c_str()))
+			{
+				fp = fopen(path.c_str(), "rb");
+				if (!fp)
+					set_response_code(INTERNAL_SERVER_ERROR);
+			}
+		}
 	}
 	if (fp == nullptr && !sendError)
 		set_response_code(NOT_FOUND);

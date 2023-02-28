@@ -14,6 +14,7 @@ std::map<StatusCode, std::string> StaticResponseMessages::S_initResponseMessages
 	Messages[FORBIDDEN] = " Forbidden ";
 	Messages[REQUEST_ENTITY_TOO_LARGE] = " Request Entity Too Large ";
 	Messages[REQUEST_HEADER_TOO_LARGE] = " Request Header Too Large ";
+	Messages[REQUEST_URI_TOO_LONG] = " Request Uri Too Long ";
 
 
 	Messages[INTERNAL_SERVER_ERROR] = " Internal Server Error ";

@@ -6,7 +6,7 @@
 /*   By: klaarous <klaarous@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/15 14:53:29 by klaarous          #+#    #+#             */
-/*   Updated: 2023/02/28 13:29:53 by klaarous         ###   ########.fr       */
+/*   Updated: 2023/02/28 18:21:11 by klaarous         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -174,6 +174,7 @@ bool A_Request::isRequestWellFormed(Client &client)
 	}
 	if (_path.length() > MAX_URI_SIZE)
 	{
+		std::cout << "hereee :" << _path.length() << std::endl;
 		client.set_response_code(REQUEST_URI_TOO_LONG);
 		return (false);
 	}

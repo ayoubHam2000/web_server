@@ -22,12 +22,15 @@ public:
 	ServerConfig(): _host(),
 					_service("80"),
 					_server_name(),
-					_maxClientBodySize(42949672),
+					_maxClientBodySize(ULONG_MAX),
 					_errorPages(),
 					_locations()
 	{
-		_errorPages[404] = "../static/error400.html";
 		_errorPages[400] = "../static/error404.html";
+		_errorPages[403] = "../static/error403.html";
+		_errorPages[404] = "../static/error400.html";
+		_errorPages[405] = "../static/error405.html";
+		_errorPages[413] = "../static/error413.html";
 	}
 
 	ServerConfig(const ServerConfig& other){
@@ -84,12 +87,17 @@ const std::map<std::string, LocationConfig> &getLocations() const {
 // Set
 /*****************************************************************/
 
+	void	setDefAndCheckResult(){
+		if (_server_name.empty())
+			_server_name = getListen();
+		if (_locations.empty()){
+			throw std::runtime_error("No location provided in the server config");
+		}
+	}
+
 	void setListen(const std::string &value){
 		if (!_parseListenIpAddressPort(value))
 			throw std::runtime_error("Invalid listen value");
-		std::string::size_type pos = value.find(':');
-		_host = value.substr(0, pos);
-		_service = value.substr(pos + 1);
 	}
 
 	void setServerName(const std::string &value){
@@ -111,7 +119,11 @@ const std::map<std::string, LocationConfig> &getLocations() const {
 		int errorStatus = std::stoi(value.substr(0, pos));
 		while (value[pos] == ' ')
 			pos++;
-		std::string page = value.substr(pos);
+		std::string page = FileSystem::removeDotDot(value.substr(pos));
+		if (!FileSystem::file_exists(page.c_str()))
+			throw std::runtime_error("error page does not exist");
+		if (FileSystem::isDirectory(page.c_str()))
+			throw std::runtime_error("error page is a directory");
 		_errorPages[errorStatus] = page;
 	}
 
@@ -153,36 +165,48 @@ private:
 	}
 
 	bool	_parseListenIpAddressPort(const std::string &str){
-		std::istringstream iss(str);
-		std::string b;
+		int				status;
+		struct			addrinfo hints;
+		struct addrinfo *bind_address;
 
-		try{
-			int counter = 0;
-			int i = 0;
-			char c = '.';
-			while (std::getline(iss, b,c)){
-				if (_is_number(b) && b.size() <= 5){
-					int nb = std::stoi(b);
-					if (i <= 3 && nb >= 0 && nb <= 255){
-						counter++;
-					} else if (i <= 4 &&  nb >= 0 && nb <= 65535){
-						counter++;
-					}
-				}
-				if (i == 2)
-					c = ':';
-				i++;
-			}
-			return (counter == 5);
-		}catch (const std::exception &e){
+		std::string::size_type pos = str.find(':');
+		if (pos != std::string::npos){
+			_host = str.substr(0, pos);
+			_service = str.substr(pos + 1);
+		} else {
+			_host = str;
+		}
+
+		memset(&hints, 0, sizeof(hints));
+		hints.ai_family = AF_INET;
+		hints.ai_socktype = SOCK_STREAM;
+		hints.ai_flags = AI_PASSIVE;
+
+		status = getaddrinfo(_host.c_str(), _service.c_str(), &hints, &bind_address);
+		if (status != 0) {
 			return (false);
 		}
+		char address_buffer[100];
+		char service[100];
+		status = getnameinfo(
+				bind_address->ai_addr, bind_address->ai_addrlen,
+				address_buffer, sizeof(address_buffer),
+				service, sizeof(service),
+				NI_NUMERICSERV | NI_NUMERICHOST);
+		if (!status){
+			_host = address_buffer;
+			_service = service;
+		}else{
+			return (false);
+		}
+		return (true);
 	}
 
 	bool _parseServerName(const std::string &str){
-		//[_a-Z0-9]*
+		//[-_a-Z0-9.:]*
+		const std::string tokens("_-.:");
 		for (std::string::const_iterator iter = str.begin(); iter != str.end(); ++iter){
-			if (!std::isalnum(*iter) && *iter != '_')
+			if (!std::isalnum(*iter) && tokens.find(*iter) == std::string::npos)
 				return (false);
 		}
 		return (true);

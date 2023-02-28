@@ -37,6 +37,14 @@ public:
 
 public:
 
+	bool isSet(){
+		return (_serverConf != NULL && _locationConf != NULL);
+	}
+
+	bool isServerConfSet(){
+		return _serverConf != NULL;
+	}
+
 	void setHeader(const Header *header) {
 		_header = header;
 	}
@@ -100,7 +108,7 @@ public:
 
 
 	bool isRequestCanHandledByCgi() const {
-		const char *ptr = fileExtension(getHeader().getPath().getPath().c_str());
+		const char *ptr = FileSystem::fileExtension(getHeader().getPath().getPath().c_str());
 		if (ptr){
 			std::string ext(ptr);
 			if (getLocationConf().getCgi().find(ptr) != getLocationConf().getCgi().cend()){
@@ -111,7 +119,7 @@ public:
 	}
 
 	const std::string& getCGIPath() const {
-		std::string ext(fileExtension(getHeader().getPath().getPath().c_str()));
+		std::string ext(FileSystem::fileExtension(getHeader().getPath().getPath().c_str()));
 		return getLocationConf().getCgi().find(ext)->second;
 	}
 
@@ -119,42 +127,24 @@ public:
 		return getHeader().getPath().getPath();
 	}
 
-	const std::string& getErrorPage(int status) const{
-		return getServerConf().getErrorPages().at(status);
-	}
-
 	std::string getRequestedFile() const{
 		return getRequestedPath().substr(getLocationConf().getLocation().size());
 	}
 
 	std::string getReqFileRelativePath() const{
-		return getLocationConf().getRootFolder() + "/" + getRequestedFile();
+		return FileSystem::removeDotDot(getLocationConf().getRootFolder() + "/" + getRequestedFile());
 	}
 
 	std::string geReqFileFullPath() const{
 		char cwd[1024];
 
 		if (getcwd(cwd, sizeof(cwd)) != NULL){
-			return std::string(cwd) + "/" + getReqFileRelativePath();
+			return FileSystem::removeDotDot(std::string(cwd) + "/" + getReqFileRelativePath());
 		} else {
 			throw std::runtime_error("CWD Failed");
 		}
 	}
 
-//#Static
-public:
-
-	static const char *fileExtension(const std::string& file){
-		return std::strrchr(file.c_str(), '.');
-	}
-
-	static std::string fileMemType(const std::string& file){
-		const char *ext = fileExtension(file);
-		if (ext){
-			return (getMIMEType(std::string(ext)));
-		}
-		return (getMIMEType(""));
-	}
 };
 
 

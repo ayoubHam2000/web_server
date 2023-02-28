@@ -8,20 +8,34 @@
 #include <array>
 #include "Libraries.h"
 #include "HeaderPath.h"
-
+#include "MyBuffer.h"
 
 class Header {
+public:
+	enum {
+		_NONE,
+		BAD_REQUEST, HTTP_Version_Not_Supported
+	};
+private:
 	std::string							_requestType;//GET POST DELETE | Get
 	HeaderPath							_pathQuery;
 	std::string							_protocol;//HTTP/1.1
 	std::map<std::string, std::string>	_httpHeaders;//alphaNum-:.*
+private:
+	MyBuffer							_requestHeader;
+	int									_status;
+
+#pragma region Construction Getters Setters
+
 public:
 
 	Header() :
 			_requestType(),
 			_pathQuery(),
 			_protocol(),
-			_httpHeaders()
+			_httpHeaders(),
+			_requestHeader(Const::MAX_REQUEST_SIZE, "\r\n\r\n"),
+			_status(_NONE)
 	{}
 
 	Header(const Header& other) :
@@ -43,6 +57,14 @@ public:
 
 public:
 
+	bool isDone(){
+		return _requestHeader.isMatch();
+	}
+
+	int getStatus() const {
+		return _status;
+	}
+
 	const std::string &getRequestType() const {
 		return _requestType;
 	}
@@ -58,13 +80,13 @@ public:
 	const std::map<std::string, std::string> &getHttpHeaders() const {
 		return _httpHeaders;
 	}
+#pragma  endregion
 
+# pragma region PARSE
 public:
 
 
 	bool	getRequestLine(const std::string &requestLine){
-		const char *allowedMethodArray[] = {"GET", "POST", "DELETE", NULL};
-
 		std::vector<std::string> requestTokens;
 		std::string token;
 		std::stringstream iss(requestLine);
@@ -78,14 +100,6 @@ public:
 		//validate request type
 		_requestType = requestTokens[0];
 		std::transform(_requestType.begin(), _requestType.end(), _requestType.begin(), toupper);
-		const char **ptr = allowedMethodArray;
-		while (*ptr){
-			if (_requestType == *ptr)
-				break;
-			ptr++;
-		}
-		if (!(*ptr))
-			return (false);
 
 		//validate path
 		if (!_pathQuery.parse(requestTokens[1]))
@@ -93,8 +107,10 @@ public:
 
 		//validate _protocol
 		_protocol = requestTokens[2];
-		if (_protocol != "HTTP/1.1")
+		if (_protocol != "HTTP/1.1"){
+			_status = HTTP_Version_Not_Supported;
 			return (false);
+		}
 		return (true);
 	}
 
@@ -148,8 +164,9 @@ public:
 			std::string line = header.substr(startPos, endPos - startPos);
 			if (isRequestLine){
 				//request Line
-				if (!getRequestLine(line))
+				if (!getRequestLine(line)){
 					return (false);
+				}
 				isRequestLine = false;
 			}else{
 				//key value
@@ -157,26 +174,59 @@ public:
 				if (pos == std::string::npos)
 					return (false);
 				std::string key = line.substr(0, pos);
-				std::string value = line.substr(pos + 1);
+				std::string value = trim(line.substr(pos + 1));
 				for (std::string::iterator iter = key.begin(); iter != key.end(); ++iter){
 					if (*iter != '-' && !std::isalnum(*iter))
 						return (false);
 				}
 				std::transform(key.begin(), key.end(), key.begin(), toupper);
 				if (_httpHeaders.find(key) == _httpHeaders.end()){
-					//remove first space
-					std::string::size_type a = 0;
-					while (a < value.size() && (value[a] == ' ' || value[a] == '\t'))
-						a++;
-					_httpHeaders[key] = value.substr(a);
+					_httpHeaders[key] = value;
 				}
-				else
-					return (false);
+				else {
+					_httpHeaders[key] += "; " + value;
+				}
 			}
 			startPos = endPos + 2;
 			endPos = header.find("\r\n", startPos);
 		}
 		return (!isRequestLine && _checkForHeaderValues());
+	}
+
+	bool has(const std::string &key) const{
+		std::string s(key.size(), '*');
+		std::transform(key.cbegin(), key.cend(), s.begin(), toupper);
+		return _httpHeaders.find(s) != _httpHeaders.end();
+	}
+
+	const std::string& valueOf(const std::string& key) const{
+		std::string s(key.size(), '*');
+		std::transform(key.cbegin(), key.cend(), s.begin(), toupper);
+		return _httpHeaders.at(s);
+	}
+
+	void display(std::ostream& os) const {
+		for (std::map<std::string, std::string>::const_iterator iter = _httpHeaders.cbegin(); iter != _httpHeaders.cend(); ++iter){
+			os << iter->first << ": " << iter->second << std::endl;
+		}
+	}
+
+# pragma endregion
+
+public:
+
+	size_t 	add(char *chunk, size_type chunkSize){
+		size_type nbRead = _requestHeader.add(chunk, chunkSize);
+		if (_requestHeader.isFull() && !_requestHeader.isMatch()){
+			_status = BAD_REQUEST;
+		}
+		if (_requestHeader.isMatch()){
+			int s = parse(std::string(_requestHeader.getBuffer(), _requestHeader.getSize()));
+			if (!s && _status == _NONE){
+				_status = BAD_REQUEST;
+			}
+		}
+		return (nbRead);
 	}
 
 public:
@@ -209,23 +259,7 @@ public:
 		}
 	}
 
-	bool has(const std::string &key) const{
-		std::string s(key.size(), '*');
-		std::transform(key.cbegin(), key.cend(), s.begin(), toupper);
-		return _httpHeaders.find(s) != _httpHeaders.end();
-	}
 
-	const std::string& valueOf(const std::string& key) const{
-		std::string s(key.size(), '*');
-		std::transform(key.cbegin(), key.cend(), s.begin(), toupper);
-		return _httpHeaders.at(s);
-	}
-
-	void display(std::ostream& os) const {
-		for (std::map<std::string, std::string>::const_iterator iter = _httpHeaders.cbegin(); iter != _httpHeaders.cend(); ++iter){
-			os << iter->first << ": " << iter->second << std::endl;
-		}
-	}
 
 };
 

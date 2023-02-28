@@ -62,6 +62,42 @@ const std::string&	getMIMEType(const std::string& extension){
 	return (def);
 }
 
+void	capitalize(std::string& str){
+	bool first = true;
+	for (std::string::iterator iter = str.begin(); iter != str.end(); ++iter){
+		if (isalpha(*iter)){
+			if (first){
+				*iter = toupper(*iter);
+				first = false;
+			} else {
+				*iter = tolower(*iter);
+			}
+		} else {
+			first = true;
+		}
+	}
+}
+
+std::string trim(const std::string& str) {
+	std::string trimmed = str;
+
+	// remove spaces from the beginning
+	std::string::size_type  i = 0;
+	while (isspace(trimmed[i])) {
+		++i;
+	}
+	trimmed.erase(0, i);
+
+	// remove spaces from the end
+	i = trimmed.size() - 1;
+	while (isspace(trimmed[i])) {
+		--i;
+	}
+	trimmed.erase(i + 1);
+
+	return trimmed;
+}
+
 const std::string&	getExtension(const std::string& mimeType){
 	const static std::string def = "";
 	static std::map<std::string, std::string> mime_to_ext;

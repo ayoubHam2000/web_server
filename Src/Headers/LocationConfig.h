@@ -94,6 +94,20 @@ public:
 // Set
 /*****************************************************************/
 
+	void	setDefAndCheckResult(){
+		if (_uploadFolder.empty() && _allowedMethods["POST"])
+			throw std::runtime_error("Upload folder must be set for location: " + _location);
+		if (!_uploadFolder.empty()){
+			if (_uploadFolder[0] == '.')
+				_uploadFolder = FileSystem::removeDotDot(_rootFolder + "/" + _uploadFolder);
+			if (!FileSystem::file_exists(_uploadFolder.c_str())){
+				FileSystem::createFolderRecursively(_uploadFolder.c_str(), true);
+			}
+			if (!FileSystem::isDirectory(_uploadFolder.c_str())){
+				throw std::runtime_error("Upload folder can't be a file");
+			}
+		}
+	}
 
 	void setLocation(const std::string &value) {
 		_location = value;
@@ -117,7 +131,7 @@ public:
 	void setAutoIndex(const std::string &value) {
 		std::string autoIndex = value;
 		std::transform(autoIndex.begin(), autoIndex.end(), autoIndex.begin(), tolower);
-		if (autoIndex != "on" && autoIndex != "of")
+		if (autoIndex != "on" && autoIndex != "off")
 			throw std::runtime_error("Not valid autoIndex");
 		_autoIndex = false;
 		if (autoIndex == "on")
@@ -125,6 +139,10 @@ public:
 	}
 
 	void setRootFolder(const std::string &value) {
+		if (!FileSystem::file_exists(value.c_str()))
+			throw std::runtime_error("root folder does not exist for location " + _location);
+		if (!FileSystem::isDirectory(value.c_str()))
+			throw std::runtime_error("root folder can't be a file for location "  + _location);
 		_rootFolder = value;
 	}
 
@@ -137,14 +155,20 @@ public:
 	}
 
 	void setUploadFolder(const std::string &value) {
-		_uploadFolder = value;
+		_uploadFolder = FileSystem::removeDotDot(value);
 	}
 
 	void addCgi(const std::string &value) {
-		std::string::size_type pos = value.find(" ");
+		std::string::size_type pos = value.find(' ');
+		if (pos == std::string::npos)
+			throw std::runtime_error("Error CGI PATH DOES NOT EXIST");
 		std::string extension = value.substr(0, pos);
-		std::string cgi = value.substr(pos + 1);
-		_cgi[extension] = cgi;
+		std::string cgi = trim(value.substr(pos + 1));
+		if (cgi.empty())
+			throw std::runtime_error("Error CGI PATH DOES NOT EXIST");
+		if (extension[0] != '.')
+			extension = '.' + extension;
+		_cgi[extension] = FileSystem::removeDotDot(cgi);
 	}
 
 public:

@@ -65,12 +65,26 @@ public:
 		}
 	}
 
+	void	checkConf(std::vector<ServerConfig> &res){
+		std::map<std::string, std::set<std::string> > mapServerNames;
+		for (std::vector<ServerConfig>::iterator iter = res.begin(); iter != res.end(); ++iter){
+			std::pair<std::map<std::string, std::set<std::string> >::iterator, bool> mapInsert =
+			        mapServerNames.insert(std::make_pair(iter->getListen(), std::set<std::string>()));
+			std::pair<std::set<std::string>::iterator, bool> setInsert =
+					mapInsert.first->second.insert(iter->getServerName());
+			if (!setInsert.second){
+				throw std::runtime_error("Duplicate Server Name in the same host: " + iter->getListen());
+			}
+		}
+	}
+
 	//TODO: ToRemove
 	void display(){
 		std::vector<ServerConfig> conf;
 		getConfigurations(conf);
 		for (std::vector<ServerConfig>::iterator iter = conf.begin(); iter != conf.end(); ++iter){
 			iter->display();
+			std::cout << "_________________________-----------___________" << std::endl;
 		}
 	}
 
@@ -86,17 +100,35 @@ int _isIn(char c, const char *set){
 	return (false);
 }
 
+void _skipCommentIfAny(){
+	const char *b = " \t\v\r\f\0";
+	int i = 0;
+	while (_buffer[i] && _isIn(_buffer[i], b))
+		i++;
+	if (_buffer[i] == '#'){
+		while (_buffer[i] && _buffer[i] != '\n')
+			i++;
+		if (_buffer[i] == '\n'){
+			_buffer += i;
+			_counter += i;
+		}
+	}
+}
+
 int _advance(int i){
 	if (*_buffer == 0 && i > 0){
 		throw std::runtime_error("Advance used when *_buffer = 0");
 	}
 	while (i--){
-		_counter++;
 		if (*_buffer == '\n'){
 			_indexBeginLine = _buffer - _bufferOrigin;
 			_nbLine++;
 		}
+		_counter++;
 		_buffer++;
+		if (*(_buffer - 1) == '\n'){
+			_skipCommentIfAny();
+		}
 	}
 	return (0);
 }
@@ -344,6 +376,7 @@ void fillLocation(LocationConfig& location, SyntaxTree *tree){
 			location.addCgi(value);
 		}
 	}
+	location.setDefAndCheckResult();
 }
 
 void fillServerConf(ServerConfig& serverConfig, SyntaxTree *tree){
@@ -368,6 +401,7 @@ void fillServerConf(ServerConfig& serverConfig, SyntaxTree *tree){
 			serverConfig.addLocation(value, location);
 		}
 	}
+	serverConfig.setDefAndCheckResult();
 }
 
 };//END CLASS

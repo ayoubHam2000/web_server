@@ -16,3 +16,20 @@ _BLANK -> \n|\t|\v|\r|\f
 * parse servername
 
 for i in {1..100}; do curl -s -o /dev/null 127.0.0.1:3030 && echo "Success" || echo "Failed"; done
+
+//TOD HOST, ../ in requested path
+//TOD relative path and abs
+//Tod indexFile
+//TODO if redirection redirect automatically without check (ask for GET POST)
+//TODO CGI header parse
+//TODO header can allowed duplacate cookies
+//Todo when client send you a keep-alive send him keep-alive
+//TODO CGI headers
+//Todo content length not begger then size_type
+//Todo Internal Server Error
+//TODO delete
+
+
+//TODO Header Accept
+//TODO htons
+//max body size 

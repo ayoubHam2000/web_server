@@ -19,6 +19,7 @@
 # include <sys/time.h>
 # include <fstream>
 # include <fcntl.h>
+# include <unordered_map>
 
 # include <sys/types.h>
 # include <sys/socket.h>
@@ -32,6 +33,9 @@
 # include <dirent.h>
 # include <sys/stat.h>
 
+# include "Const.h"
+# include "Chunk.h"
+# include "FileSystem.hpp"
 
 typedef int													socketType;
 typedef unsigned long 										size_type;
@@ -45,10 +49,13 @@ typedef unsigned long 										size_type;
 #define WHT   "\x1B[37m"
 #define RESET "\x1B[0m"
 
+# define TRACK_WHERE std::string(__FILE_NAME__) + ":" + std::to_string(__LINE__) + ":"
 # define read_chunk_size 102400 //100kB
 
 size_t	get_time_ms(void);
+void	capitalize(std::string& str);
 bool isHexChar(char c);
 const std::string&	getMIMEType(const std::string& extension);
 const std::string&	getExtension(const std::string& mimeType);
+std::string trim(const std::string& str);
 #endif //WEB_SERVER_LIBRARIES_H

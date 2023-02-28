@@ -8,6 +8,7 @@ _OUT/
 WebServer
 testFolder
 web_server
+public/uploads/*
 #CMakeLists.txt
 
 .idea/**/workspace.xml

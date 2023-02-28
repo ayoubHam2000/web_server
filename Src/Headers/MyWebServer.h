@@ -10,9 +10,6 @@
 #include "Server.h"
 
 class MyWebServer {
-/*****************************************************************/
-// Non-member function overloads (relational operators, swap)
-/*****************************************************************/
 public:
 	typedef std::vector<ServerConfig>							listConfType;
 	typedef std::map<socketType, std::vector<ServerConfig*> >	mapServerType;
@@ -21,8 +18,6 @@ public:
 	static bool webServerIsRunning;
 private:
 	const static unsigned int max_listen = 100000;
-	const static unsigned int max_response_time_ms = 1000 * 60 * 2;
-	const static unsigned int write_chunk_size = 2048;
 private:
 	listConfType	_configs;
 	mapServerType	_servers;
@@ -33,23 +28,144 @@ private:
 public:
 	MyWebServer(){}
 	~MyWebServer(){}
-/*****************************************************************/
-// Static Functions
-/*****************************************************************/
-private:
-
 
 public:
 /*****************************************************************/
-// Utils Functions
+// Core Functions
 /*****************************************************************/
+
+	void acceptNewClientInto(socketType serverSocket){
+		Client* newClient = new Client(serverSocket, _servers[serverSocket]);
+		if (newClient->getErrorFlag() == Client::NOT_ACCEPTED){
+			std::cerr << "Client Not Accepted" << std::endl;
+			delete newClient;
+		} else {
+			_clients[newClient->getSocket()] = newClient;
+		}
+	}
+
+	void dropClient(Client *client){
+		close(client->getSocket());
+		_clients[client->getSocket()] = NULL;
+		delete client;
+	}
+
+	void addExpectedReadersAndWriters(int &maxSocket, fd_set &reads, fd_set &writes){
+		for (mapServerType::iterator iter = _servers.begin(); iter != _servers.end(); ++iter){
+			if (maxSocket < iter->first)
+				maxSocket = iter->first;
+			FD_SET(iter->first, &reads);
+		}
+		for (mapClientType::iterator iter = _clients.begin(); iter != _clients.end(); ++iter){
+			if (maxSocket < iter->first)
+				maxSocket = iter->first;
+			if (iter->second->getPhase() == Client::WAITING_REQ)
+				FD_SET(iter->first, &reads);
+			else if (iter->second->getPhase() == Client::SENDING_RES)
+				FD_SET(iter->first, &writes);
+		}
+	}
+
+
+	void readFromClient(Client* client){
+		char chunk[read_chunk_size];
+		size_type nbRead = read(client->getSocket(), chunk, read_chunk_size);
+		if (nbRead < 1)
+			throw std::runtime_error(TRACK_WHERE + "ERROR read");
+		client->handleChunk(chunk, nbRead);
+	}
+
+	void writeToClient(Client* client){
+		int status = client->sendResponse();
+		if (status == Client::DONE || status == Client::FAILED){
+			dropClient(client);
+		}
+	}
+
+
+/*****************************************************************/
+// Core
+/*****************************************************************/
+
+	void serve(fd_set &reads, fd_set &writes){
+		for (mapServerType::iterator iter = _servers.begin(); iter != _servers.end(); ++iter){
+			if (FD_ISSET(iter->first, &reads)){
+				acceptNewClientInto(iter->first);
+			}
+		}
+		for (mapClientType::iterator iter = _clients.begin(); iter != _clients.end(); ++iter){
+			Client*	client = _clients[iter->first];
+			try{
+				if (FD_ISSET(client->getSocket(), &reads)){
+					readFromClient(client);
+				}else if (FD_ISSET(iter->first, &writes)){
+					writeToClient(client);
+				}
+			} catch (std::exception &e){
+				std::cerr << "Error: " << e.what() << std::endl;
+				dropClient(client);
+			}
+		}
+
+		//remove clients
+		mapClientType::iterator iter = _clients.begin();
+		while (iter != _clients.end()){
+			if (iter->second == NULL){
+				_clients.erase(iter++);
+			} else {
+				++iter;
+			}
+		}
+	}
+
+	void core(){
+		while (webServerIsRunning){
+			int maxSocket = 0;
+			fd_set reads;
+			fd_set writes;
+			FD_ZERO(&reads);
+			FD_ZERO(&writes);
+			addExpectedReadersAndWriters(maxSocket, reads, writes);
+			if (select(maxSocket + 1, &reads, &writes, 0, 0) < 0) {
+				if (errno != EINTR)
+					throw std::runtime_error(std::to_string(errno) + " : select failed.");
+			}
+			if (webServerIsRunning)
+				serve(reads, writes);
+		}
+	}
+
+/*****************************************************************/
+// SetUp Functions
+/*****************************************************************/
+
+	void startWebServer(){
+		MyWebServer::webServerIsRunning = true;
+		std::cout << "Web Server Is running" << std::endl;
+		core();
+		stopWebServer();
+	}
+
+	void stopWebServer(){
+		std::set<int> sockets;
+
+		for (mapClientType::iterator iter = _clients.begin(); iter != _clients.end(); ++iter){
+			close(iter->first);
+			delete ((iter->second));
+		}
+		for (mapServerType::iterator iter = _servers.begin(); iter != _servers.end(); ++iter){
+			close(iter->first);
+		}
+		std::cout << "WebServer is stopped" << std::endl;
+	}
+
+
 	socketType	createSocket(const std::string &host, const std::string &service){
 		int				status;
 		struct			addrinfo hints;
 		struct addrinfo *bind_address;
 		socketType 		socket_listen;
 
-		std::cout << "Creating socket: " << host << ":" << service << std::endl;
 		memset(&hints, 0, sizeof(hints));
 		hints.ai_family = AF_INET;
 		hints.ai_socktype = SOCK_STREAM;
@@ -76,157 +192,8 @@ public:
 		}
 
 		freeaddrinfo(bind_address);
+		std::cout << "Listen On " << host << ":" << service << std::endl;
 		return socket_listen;
-	}
-
-	void addExpectedReadersAndWriters(int &maxSocket, fd_set &reads, fd_set &writes){
-		for (mapServerType::iterator iter = _servers.begin(); iter != _servers.end(); ++iter){
-			if (maxSocket < iter->first)
-				maxSocket = iter->first;
-			FD_SET(iter->first, &reads);
-		}
-		for (mapClientType::iterator iter = _clients.begin(); iter != _clients.end(); ++iter){
-			if (maxSocket < iter->first)
-				maxSocket = iter->first;
-			if (iter->second->getPhase() == Client::WAITING_REQ)
-				FD_SET(iter->first, &reads);
-			else if (iter->second->getPhase() == Client::SENDING_RES)
-				FD_SET(iter->first, &writes);
-		}
-	}
-
-/*****************************************************************/
-// Core Functions
-/*****************************************************************/
-
-
-//TODO: Not Enough Memory Message
-//TODO: Client Not Accepted Message
-//TODO: Client Accepted Message
-	void acceptNewClientInto(socketType serverSocket){
-		try{
-			Client* newClient = new Client(serverSocket, &_servers[serverSocket]);
-			if (newClient->getErrorFlag() == Client::NOT_ACCEPTED){
-				std::cerr << "Client Not Accepted" << std::endl;
-				delete newClient;
-			} else {
-				_clients[newClient->getSocket()] = newClient;
-				//std::cout << "new Client : socket " << newClient->getSocket() << " nb Client : " << Client::nbClients << std::endl;
-			}
-		}catch (...){
-			std::cerr << "Not Enough Memory" << std::endl;
-		}
-	}
-
-	void dropClient(Client *client){
-		//std::cout << "Drop Client : " << client->getSocket() << " nb Client" << Client::nbClients << std::endl;
-		close(client->getSocket());
-		_clients[client->getSocket()] = NULL;
-		delete client;
-	}
-
-//TODO Message
-	void readFromClient(Client* client){
-		char chunk[read_chunk_size];
-		size_type nbRead = read(client->getSocket(), chunk, read_chunk_size);
-		if (nbRead < 1){
-			//std::cout << "Read Failed " << std::endl;
-			dropClient(client);
-		} else {
-			//Handle Chunk if request is complete it change the _phase of the client to SENDING_RES;
-			client->handleChunk(chunk, nbRead);
-		}
-	}
-
-	void writeToClient(Client* client){
-		int status = client->sendResponse();
-		if (status == Client::DONE || status == Client::FAILED){
-			dropClient(client);
-		}
-	}
-
-
-//TODO Message
-	void serve(fd_set &reads, fd_set &writes){
-		for (mapServerType::iterator iter = _servers.begin(); iter != _servers.end(); ++iter){
-			if (FD_ISSET(iter->first, &reads)){
-				acceptNewClientInto(iter->first);
-			}
-		}
-		for (mapClientType::iterator iter = _clients.begin(); iter != _clients.end(); ++iter){
-			Client*	client = _clients[iter->first];
-			try{
-				if (FD_ISSET(client->getSocket(), &reads)){
-					//std::cout << "Client " << client->getSocket() << " Send Data" << std::endl;
-					client->setLastResponse();
-					readFromClient(client);
-				}else if (FD_ISSET(iter->first, &writes)){
-					//std::cout << "Sending Data To " << client->getSocket() << std::endl;
-					client->setLastResponse();
-					writeToClient(client);
-				}
-			}catch (std::exception &e){
-				std::cerr << e.what() << " Error: client" << client->getSocket() << std::endl;
-				dropClient(client);
-			}
-			/*if (get_time_ms() - client->getLastResponse() > max_response_time_ms){
-				std::cout << "Client Not responding" << std::endl;
-				dropClient(client);
-			}*/
-		}
-
-		//remove clients
-		mapClientType::iterator iter = _clients.begin();
-		while (iter != _clients.end()){
-			if (iter->second == NULL){
-				_clients.erase(iter++);
-			} else {
-				++iter;
-			}
-		}
-	}
-
-	void core(){
-		while (webServerIsRunning){
-			//std::cout << "Select" << std::endl;
-			int maxSocket = 0;
-			fd_set reads;
-			fd_set writes;
-			FD_ZERO(&reads);
-			FD_ZERO(&writes);
-			addExpectedReadersAndWriters(maxSocket, reads, writes);
-			if (select(maxSocket + 1, &reads, &writes, 0, 0) < 0) {
-				if (errno != EINTR)
-					throw std::runtime_error(std::to_string(errno) + " : select failed.");
-			}
-			if (webServerIsRunning)
-				serve(reads, writes);
-		}
-	}
-
-/*****************************************************************/
-// SetUp Functions
-/*****************************************************************/
-
-	void startWebServer(){
-		MyWebServer::webServerIsRunning = true;
-		std::cout << "Web Server Is running" << std::endl;
-		core();
-	}
-
-	void stopWebServer(){
-		std::set<int> sockets;
-
-		for (mapClientType::iterator iter = _clients.begin(); iter != _clients.end(); ++iter){
-			int status = close(iter->first);
-			std::cout << status << " " << errno << std::endl;
-			delete ((iter->second));
-		}
-		for (mapServerType::iterator iter = _servers.begin(); iter != _servers.end(); ++iter){
-			int status = close(iter->first);
-			std::cout << status << " " << errno << std::endl;
-		}
-		std::cout << "WebServer is stopped" << std::endl;
 	}
 
 	void setServers(){
@@ -249,6 +216,7 @@ public:
 	void setConfigurations(const std::string &confPath){
 		Configurations configurations(confPath);
 		configurations.getConfigurations(_configs);
+		configurations.checkConf(_configs);
 		//configurations.display();
 	}
 

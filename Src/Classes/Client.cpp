@@ -6,7 +6,7 @@
 /*   By: klaarous <klaarous@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/09 12:38:10 by klaarous          #+#    #+#             */
-/*   Updated: 2023/02/28 16:50:02 by klaarous         ###   ########.fr       */
+/*   Updated: 2023/02/28 17:13:44 by klaarous         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -267,7 +267,6 @@ void Client::setIsRequestForCgi()
 	{
 		isForCgi = true;
 		clientInfos._cgiPath = pathCgi;
-		std::cout << "is For Cgis*******\n\n";
 	}
 	
 }

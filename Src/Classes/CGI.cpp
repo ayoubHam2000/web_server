@@ -6,7 +6,7 @@
 /*   By: klaarous <klaarous@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/25 15:58:42 by klaarous          #+#    #+#             */
-/*   Updated: 2023/02/28 16:08:04 by klaarous         ###   ########.fr       */
+/*   Updated: 2023/02/28 17:14:06 by klaarous         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -179,7 +179,7 @@ void CGI::_execCGI(){
 
 	
 	std::string cgiPath = _clientInfos->_cgiPath;
-	std::cout << "path == " << cgiPath << std::endl;
+	//std::cout << "path == " << cgiPath << std::endl;
 	std::string filePath = FileSystem::getFullPath(_clientInfos->_indexPath);
 
 	//args

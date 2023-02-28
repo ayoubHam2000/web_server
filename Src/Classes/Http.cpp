@@ -81,6 +81,7 @@ void ft::Http::getRequest(int Client_Number, std::map<std::string, Server> &Serv
 
 void ft::Http::sendResponse(int Client_Number) 
 {
+	
 	Client &client = _clients[Client_Number];
 	if (client.clientInfos._responseHandler->isHeaderSend() == false && client.sendError)
 	{

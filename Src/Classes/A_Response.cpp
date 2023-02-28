@@ -6,7 +6,7 @@
 /*   By: klaarous <klaarous@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/24 11:27:06 by klaarous          #+#    #+#             */
-/*   Updated: 2023/02/28 16:44:46 by klaarous         ###   ########.fr       */
+/*   Updated: 2023/02/28 17:25:10 by klaarous         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,7 @@ bool A_Response::sendHeaderResponse(Client &client)
 	if (client.sendError)
 		client.setPathResponse();
 	std::string responseHeader = getHeaderResponse(client);
-	if (send(client.socket, responseHeader.c_str(), responseHeader.length(), 0)  == -1 ||\
+	if (send(client.socket, responseHeader.c_str(), responseHeader.length(), 0)  <= 0 ||\
 			client.clientInfos._requestHandler->getMethod() == "HEAD")// || isRedirection(client.responseCode))
 	{
 		fclose(client.fp);
@@ -55,7 +55,7 @@ void A_Response::serve_resource(Client &client)
 		client.fp = nullptr;
 		return ;
 	}
-	if (send(client.socket, body, r, 0) == -1)
+	if (send(client.socket, body, r, 0) <= 0)
 	{
 		fclose(client.fp);
 		client.fp = nullptr;

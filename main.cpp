@@ -6,7 +6,7 @@
 /*   By: klaarous <klaarous@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/28 16:34:04 by klaarous          #+#    #+#             */
-/*   Updated: 2023/02/28 16:44:33 by klaarous         ###   ########.fr       */
+/*   Updated: 2023/02/28 17:22:23 by klaarous         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -92,6 +92,7 @@ int main(int ac , char **av)
 						clients[i].set_response_code(INTERNAL_SERVER_ERROR);
 						clients[i].finished_body();
 						clients[i].isForCgi = false;
+						//std::cout << "error Happend?\n\n";
 					}
 					
 					
@@ -104,6 +105,7 @@ int main(int ac , char **av)
 								clients[i].cgiHandler.read();
 								if (clients[i].cgiHandler.getStatus() == CGI::ERROR)
 								{
+									std::cout << "error Happend!!\n\n";
 									clients[i].set_response_code(INTERNAL_SERVER_ERROR);
 									clients[i].isForCgi = false;
 								}

@@ -6,7 +6,7 @@
 /*   By: klaarous <klaarous@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/12 17:48:36 by mel-amma          #+#    #+#             */
-/*   Updated: 2023/02/28 16:45:58 by klaarous         ###   ########.fr       */
+/*   Updated: 2023/02/28 17:09:05 by klaarous         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -181,7 +181,8 @@ PostRequest::~PostRequest()
 void PostRequest::setBodyAsFinished(Client &client, StatusCode responseCode)
 {
 	client.finished_body();
-	client.set_response_code(responseCode);
+	if (client.isForCgi == false)
+		client.set_response_code(responseCode);
 }
 
 bool PostRequest::handle_boundary(std::string &body, size_t , Client &client)

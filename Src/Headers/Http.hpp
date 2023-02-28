@@ -18,7 +18,7 @@ struct Http{
 
     Http(fd_set& reads, fd_set& writes, ListClients& clients, Server& server);;
 
-    void getRequest(int Client_Number, ServerMap& Servers);;
+    void getRequest(int Client_Number, ServerMap& Servers);
 
     void sendResponse(int Client_Number);;
 

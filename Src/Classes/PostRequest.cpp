@@ -6,7 +6,7 @@
 /*   By: klaarous <klaarous@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/12 17:48:36 by mel-amma          #+#    #+#             */
-/*   Updated: 2023/02/27 14:02:31 by klaarous         ###   ########.fr       */
+/*   Updated: 2023/02/28 13:33:36 by klaarous         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,24 +54,25 @@ bool PostRequest::open_file(std::string &contentType, Client &client)
 		pathDir = "/tmp/";
 	else
 		pathDir = client.clientInfos._bestLocationMatched->getUploadPass();
-	if (FileSystem::isDirectory(pathDir.c_str()))
+	if (!FileSystem::isDirectory(pathDir.c_str()))
 	{
-		std::cout << "created File\n";
-		pathDir += "_upload";
-		// upload_store check if its there, check upload pass or just put in default upload path
-		fs = FileSystem(pathDir /*get best match*/, WRITE, ContentTypes::getExtention(contentType));
-		fs.open();
-		if (client.isForCgi)
-			client.clientInfos._cgiFilePath = fs.getPath();
-		file_initialized = true;
-		return (true);
+		int check = mkdir(pathDir.c_str(),0777);
+ 
+    	// check if directory is created or not
+		if (check)
+		{
+			setBodyAsFinished(client, INTERNAL_SERVER_ERROR);
+			return (false);
+		}
 	}
-	else
-	{
-		setBodyAsFinished(client, FORBIDDEN);
-		return (false);
-	}
-	
+	pathDir += "_upload";
+	// upload_store check if its there, check upload pass or just put in default upload path
+	fs = FileSystem(pathDir /*get best match*/, WRITE, ContentTypes::getExtention(contentType));
+	fs.open();
+	if (client.isForCgi)
+		client.clientInfos._cgiFilePath = fs.getPath();
+	file_initialized = true;
+	return (true);
 }
 
 /*  send in the buffer itself or its address and the size to write  */
@@ -193,7 +194,6 @@ bool PostRequest::handle_boundary(std::string &body, size_t , Client &client)
 		std::map<std::string , std::vector < std::string > >::iterator it = _headers.find("boundary");
         if (it == _headers.end())
         {
-            std::cout << "boundary doesnt exist error\n";
             client.set_response_code(BAD_REQUEST);
             client.finished_body();
             return 0;
@@ -212,10 +212,7 @@ bool PostRequest::handle_boundary(std::string &body, size_t , Client &client)
         for (size_t i = 0; i < res.size(); i++)
         {
             if (res[i].first.empty() && res[i].second.empty())
-            {
-                std::cout << "contiuin" << std::endl;
                 continue;
-            }
             if (!res[i].second.empty())
             {
                 if (fs.is_open())
@@ -224,14 +221,7 @@ bool PostRequest::handle_boundary(std::string &body, size_t , Client &client)
 					return (0);
             }
             if (fs.is_open())
-            {
                 write_body(res[i].first, res[i].first.size(), total_size);
-            } 
-            else
-            {
-                std::cout << "?" << res[i].first << "?";
-                std::cout << "what just happened?" << std::endl;
-            }
         }
     }
     return 1;

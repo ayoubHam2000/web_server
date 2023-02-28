@@ -6,7 +6,7 @@
 /*   By: klaarous <klaarous@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/24 11:42:23 by klaarous          #+#    #+#             */
-/*   Updated: 2023/02/26 17:28:12 by klaarous         ###   ########.fr       */
+/*   Updated: 2023/02/28 13:30:38 by klaarous         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,7 +63,7 @@ std::string CGIResponse::getHeaderResponse(Client &client)
 	char buffer[BUFFER_SIZE + 1];
 	memset(buffer, 0, BUFFER_SIZE + 1);
 	size_t sz = fread(buffer, 1,BUFFER_SIZE, client.fp);
-	std::cout << "buffer === "  << buffer << std::endl;
+	//std::cout << "buffer === "  << buffer << std::endl;
 	_parseCgiHeader(std::string(buffer, sz), client);
 	StatusCode status = OK;
 	if (_cgiHasHeader("Status"))
@@ -73,7 +73,7 @@ std::string CGIResponse::getHeaderResponse(Client &client)
 	}
 	if (_cgiHasHeader("Location"))
 		status =  MOVED_PERMANETLY;
-	std::cout << "status = " << status << std::endl;
+	//std::cout << "status = " << status << std::endl;
 	std::string headerRespone = client.clientInfos._requestHandler->getHttpVersion() + " " +  std::to_string(status) + " ";
 	headerRespone += StaticResponseMessages::getMessageResponseCode(status) + "\r\n";
 	for (std::multimap<std::string, std::string >::iterator iter = _cgiHeaders.begin(); iter != _cgiHeaders.end(); ++iter){

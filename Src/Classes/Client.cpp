@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   client.cpp                                         :+:      :+:    :+:   */
+/*   Client.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: klaarous <klaarous@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/09 12:38:10 by klaarous          #+#    #+#             */
-/*   Updated: 2023/02/26 17:30:44 by klaarous         ###   ########.fr       */
+/*   Updated: 2023/02/28 14:23:27 by klaarous         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@ Client::Client()
 {
 	received = 0;
 	address_length = sizeof(addresStorage);
-	socket = -1;
+	socket = 0;
 	fp = nullptr;
 	responseCode = OK;
 	sendError = isHeaderSend = false;
@@ -166,7 +166,7 @@ void Client::setPathResponse()
 	if (fp)
 		fclose(fp);
 	std::string errorPath = clientInfos._serverConfigs->getResponsePage(responseCode);
-	std::cout << "response Code = " << responseCode << " errorPath = "<< errorPath << std::endl;
+	//std::cout << "response Code = " << responseCode << " errorPath = "<< errorPath << std::endl;
 	path = errorPath;
 	fp = fopen(path.c_str(), "rb");
 	if (!fp)
@@ -216,7 +216,7 @@ void Client::listDirectoryIntoFile(std::string &path)
 	FILE *listDir = fopen(filePath.c_str(),"wb");
 	if (listDir == nullptr)
 	{
-		std::cout << "failed open file\n\n";
+		set_response_code(INTERNAL_SERVER_ERROR);
 		return ;
 	}
 	dirent* entry = readdir(dir);
@@ -273,11 +273,5 @@ void Client::setIsRequestForCgi()
 
 Client::~Client()
 {
-	std::cout << "Destruct client\n\n";
-	// if (clientInfos._requestHandler)
-	// 	delete clientInfos._requestHandler;
-	// if (clientInfos._responseHandler)
-	// 	delete clientInfos._responseHandler;
-	// clientInfos._requestHandler = nullptr;
-	// clientInfos._responseHandler = nullptr;
+
 }

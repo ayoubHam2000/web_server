@@ -6,7 +6,7 @@
 /*   By: klaarous <klaarous@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/24 11:42:23 by klaarous          #+#    #+#             */
-/*   Updated: 2023/02/25 18:13:59 by klaarous         ###   ########.fr       */
+/*   Updated: 2023/02/28 13:33:06 by klaarous         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,6 @@ NResponse::NResponse()
 std::string NResponse::getHeaderResponse(Client &client)
 {
 	ClientInfos &ClientInfos = client.clientInfos;
-	std::cout << "heeree normal response \n\n";
 	std::string headerRespone = ClientInfos._requestHandler->getHttpVersion() + " " +  std::to_string(client.responseCode);
 	fseek(client.fp, 0L, SEEK_END);
 	size_t fileSize = ftell(client.fp);

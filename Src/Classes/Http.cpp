@@ -60,7 +60,6 @@ void ft::Http::getRequest(int Client_Number, std::map<std::string, Server> &Serv
 					client.finished_body();
 			}
 		}
-		std::cout << "*****Here Check forCGi path == " + client.path + "\n\n";
 		client.setPathRessource();// Setting path ressource
 		if (client.sendError == false)
 			client.setIsRequestForCgi();
@@ -76,7 +75,6 @@ void ft::Http::getRequest(int Client_Number, std::map<std::string, Server> &Serv
 		{
 			if (client.isForCgi)
 				client.cgiHandler.prepare(&(client.clientInfos));
-			std::cout << "Body Done\n";
 		}
 	}
 }

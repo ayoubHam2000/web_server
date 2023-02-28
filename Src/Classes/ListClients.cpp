@@ -11,7 +11,7 @@ int ListClients::getClient(int clientSocket) const {
 	return (-1);
 }
 
-void ListClients::AddClient(Client client) {
+void ListClients::AddClient(Client &client) {
 	_clients.push_back(client);
 }
 
@@ -20,14 +20,24 @@ bool ListClients::isClientExist(int clientSocket) {
 	return (clientIdx != CLIENT_NOT_FOUND);
 }
 
-void ListClients::dropClient(int &clientIdx, fd_set &reads, fd_set &writes) {
-	std::cout << "dropping client " << clientIdx << std::endl;
-	SOCKET clientSocket = _clients[clientIdx].socket;
+void ListClients::dropClient(int &clientIdx, fd_set &reads, fd_set &writes) 
+{
+	Client &client = _clients[clientIdx];
+	SOCKET clientSocket = client.socket;
 	FD_CLR(clientSocket, &reads);
 	FD_CLR(clientSocket, &writes);
-	CLOSESOCKET(clientSocket);
-	// if (_clients[clientIdx].serverConfigs)
-	// 	delete _clients[clientIdx].serverConfigs;
+	if (ISVALIDSOCKET(clientSocket))
+		CLOSESOCKET(clientSocket);
+	client.socket = -1;
+	if (client.clientInfos._requestHandler)
+		delete client.clientInfos._requestHandler;
+	if (client.clientInfos._responseHandler)
+		delete client.clientInfos._responseHandler;
+	client.clientInfos._requestHandler = nullptr;
+	client.clientInfos._responseHandler = nullptr;
+	if (client.fp)
+		fclose(client.fp);
+	client.fp = nullptr;
 	_clients.erase(_clients.begin() + clientIdx);
 	clientIdx--;
 }

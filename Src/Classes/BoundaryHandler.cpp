@@ -6,7 +6,7 @@
 /*   By: klaarous <klaarous@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/15 15:44:45 by mel-amma          #+#    #+#             */
-/*   Updated: 2023/02/23 15:26:55 by klaarous         ###   ########.fr       */
+/*   Updated: 2023/02/28 13:30:21 by klaarous         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -120,7 +120,7 @@ bool BoundaryHandler::clean_boundary(std::string &body, size_t &size, std::strin
     if(after_boundary_pos == std::string::npos)
     {
         error = true;
-        std::cout << "npos clean boundary" << std::endl;
+        //std::cout << "npos clean boundary" << std::endl;
         done = true;
         return 0;
     }
@@ -146,9 +146,8 @@ size_t BoundaryHandler::find_boundary_end(std::string &body,size_t start)
         if(cursor - start > 6 && memcmp(strData + cursor, "--", 2) == 0)//to not take firsts ones
         {
             
-            std::cout << "last boundary found" << std::endl;
-            std::cout << body<<std::endl;
-
+            //std::cout << "last boundary found" << std::endl;
+            //std::cout << body<<std::endl;
             done = true;
             return cursor + 2;
         }

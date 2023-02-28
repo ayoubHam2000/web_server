@@ -202,6 +202,7 @@ std::map<std::string, ServerMap > ConfigParser::parseServerConfig() {
 	std::stack <std::string> bracketStack;
 	std::map<std::string, ServerMap > servers;
 	Server server;
+
 	while (_currPos < _serverConfig.length() - 1)
 	{
 		std::string nextToken = getNextToken();
@@ -275,5 +276,7 @@ std::map<std::string, ServerMap > ConfigParser::parseServerConfig() {
 	if (bracketStack.size())
 		pErrorParsing("Bracket Error");
 	//PrintServers(servers);
+	
+	
 	return (servers);
 }

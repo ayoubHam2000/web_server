@@ -16,7 +16,7 @@ class ListClients
 	int	getClient(SOCKET clientSocket) const;
 
 
-	void AddClient(Client client);
+	void AddClient(Client &client);
 
 	bool isClientExist(SOCKET clientSocket);
 

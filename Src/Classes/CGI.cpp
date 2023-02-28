@@ -6,7 +6,7 @@
 /*   By: klaarous <klaarous@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/25 15:58:42 by klaarous          #+#    #+#             */
-/*   Updated: 2023/02/26 17:14:08 by klaarous         ###   ########.fr       */
+/*   Updated: 2023/02/28 13:30:26 by klaarous         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -196,7 +196,7 @@ void CGI::_execCGI(){
 		std::strcat(env[i], iter->first.c_str());
 		std::strcat(env[i], "=");
 		std::strcat(env[i], iter->second.c_str());
-		std::cout << env[i] << std::endl;
+		//std::cout << env[i] << std::endl;
 		i++;
 	}
 	env[i] = NULL;

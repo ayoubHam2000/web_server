@@ -36,7 +36,7 @@ void ClientInfos::setCgiFilePath(std::string cgiFilePath) {
 }
 
 ClientInfos::~ClientInfos() {
-	std::cout << "Destruct ClientInfos\n\n";
+	//std::cout << "Destruct ClientInfos\n\n";
 	// if (_requestHandler)
 	// 	delete _requestHandler;
 	// if (_responseHandler)

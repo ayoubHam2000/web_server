@@ -15,7 +15,7 @@ bool FileSystem::open() {
 		case (WRITE):
 			path = path + generateRandomString(6) + extension;
 			file.open(path, std::ios::out | std::ios::trunc | std::ios::binary);
-			std::cout << "openedd\n";
+			//std::cout << "openedd\n";
 			break;
 		case (APPEND):
 			file.open(path, std::ios::out | std::ios::app | std::ios::binary);
@@ -169,11 +169,9 @@ char *FileSystem::pathJoin(const char *path, const char *name) {
 
 bool FileSystem::removeAll(const char *path) {
 	DIR* dir = opendir(path);
-	std::cout << "path to delete = " << path << std::endl;
 	//TODO: remove
 	if (dir != NULL)
 	{
-		std::cout << "is dir\n";
 		struct dirent* entry;
 		entry = readdir(dir);
 		while (entry)
@@ -197,7 +195,6 @@ bool FileSystem::removeAll(const char *path) {
 	}
 	else if (file_exists(path))
 	{
-		std::cout << "is file\n";
 		if (removeFile(path) != 0)
 			return (false);
 	}
@@ -230,6 +227,9 @@ FileSystem &FileSystem::operator=(const FileSystem &other) {
 	mode = other.mode;
 	extension = other.extension;
 	if(other.is_open())
+	{
+		mode = APPEND;
 		open();
+	}
 	return (*this);
 }

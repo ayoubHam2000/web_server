@@ -2,14 +2,14 @@ server
 {
     listen			localhost:3031
     server_name			server_1
-    max_client_body_size  1000
+    #max_client_body_size  1000000
     error_page 404 public/errors/404.html
     location  / {
         allow_methods GET POST DELETE
         #redirect https://www.facebook.com/
         autoindex on
         root ./public/
-        index index.phppp
+        index index.html
         upload_pass ./public/uploads/
         cgi_pass php ./cgi-bin/php-cgi
         cgi_pass py /usr/local/bin/python3

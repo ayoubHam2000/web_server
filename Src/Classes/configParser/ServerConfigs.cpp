@@ -90,7 +90,7 @@ void ServerConfigs::setHostAndPort(std::string host, std::string port) {
 				NI_NUMERICHOST | NI_NUMERICSERV);
 	_host = buffHost;
 	_serv = buffServ;
-	std::cout << "host = " << _host  << " serv = " << _serv << std::endl;
+	freeaddrinfo(peer_address);
 }
 
 void ServerConfigs::setServerName(std::string serverName) {

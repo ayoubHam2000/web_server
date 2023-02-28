@@ -6,7 +6,7 @@
 /*   By: klaarous <klaarous@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/28 16:34:04 by klaarous          #+#    #+#             */
-/*   Updated: 2023/02/27 12:12:03 by klaarous         ###   ########.fr       */
+/*   Updated: 2023/02/28 15:04:07 by klaarous         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,7 +51,6 @@ int main(int ac , char **av)
 	signal(SIGINT, handler);
 	std::ifstream myfile (av[1]);
 	ConfigParser parser = ConfigParser(readFile(av[1]));
-	
 	//map<host+ip , <map <server name,server>>>
 	SOCKET maxSocketSoFar = -1;
 	fd_set reads , writes, readyReads, readyWrites;
@@ -60,7 +59,7 @@ int main(int ac , char **av)
 	servers = parser.parseServerConfig();
 	if(!CreateHostSockets(servers, maxSocketSoFar, reads, writes))
 		return (0);
-
+	
 	while (1)
 	{
 		try

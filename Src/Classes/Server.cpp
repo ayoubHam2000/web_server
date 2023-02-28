@@ -95,7 +95,6 @@ bool Server::sendHeaderResponse(Client &client, fd_set &reads, fd_set &writes, i
 	if (client.sendError)
 		client.setPathResponse();
 	std::string responseHeader = getHeaderResponse(client);
-	std::cout << responseHeader << std::endl;
 	if (send(client.socket, responseHeader.c_str(), responseHeader.length(), 0)  == -1 ||\
 			 		client.clientInfos._requestHandler->getMethod() == "HEAD")// || isRedirection(client.responseCode))
 	{

@@ -11,7 +11,7 @@ server
         #redirect http://www.google.com
         auto_index on
         root ../public/
-        index page2.html
+        #index page2.html
         upload_pass ./uploads
         cgi_pass php     /Users/aben-ham/.1337/projects/web_server/cgi_bin/php-cgi
         cgi_pass .py /usr/local/bin/python3

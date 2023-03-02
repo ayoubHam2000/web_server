@@ -6,7 +6,7 @@
 /*   By: klaarous <klaarous@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/01 12:56:24 by klaarous          #+#    #+#             */
-/*   Updated: 2023/02/24 14:15:08 by klaarous         ###   ########.fr       */
+/*   Updated: 2023/03/02 15:46:33 by klaarous         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,7 +55,7 @@ class ConfigParser
 	   void setLocationConfigs(Location &location, std::string &ConfigName , \
 										std::vector <std::string> &values);
 
-		unsigned long long toUnsigendLL(std::string &str);
+		static unsigned long long toUnsigendLL(std::string &str);
 
 		unsigned long long getErrorCode(std::string &ErrorCode);
 

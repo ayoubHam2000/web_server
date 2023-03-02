@@ -6,7 +6,7 @@
 /*   By: klaarous <klaarous@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/09 12:38:10 by klaarous          #+#    #+#             */
-/*   Updated: 2023/02/28 21:52:37 by klaarous         ###   ########.fr       */
+/*   Updated: 2023/03/02 15:58:46 by klaarous         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -126,10 +126,10 @@ void Client::setServerConfigs( ServerMap& servers)
 {
 	A_Request::headersType headers = clientInfos._requestHandler->getHeaders();
 	clientInfos._serverConfigs = &((servers.begin())->second.getServerConfigs());
-	ServerMap::iterator it = servers.find("Host");
-	if (it == servers.end())
+	A_Request::headersType::iterator it = headers.find("Host");
+	if (it == headers.end())
 		return ;
-	std::string host = headers.at("Host")[0];
+	std::string host = it->second[0];
 	for (ServerMap::iterator iter = servers.begin(); iter != servers.end(); ++iter){
 		ServerMap::value_type& serv = *iter;
 		if (host == serv.first)

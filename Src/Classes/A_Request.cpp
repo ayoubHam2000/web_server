@@ -6,12 +6,14 @@
 /*   By: klaarous <klaarous@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/15 14:53:29 by klaarous          #+#    #+#             */
-/*   Updated: 2023/02/28 18:21:11 by klaarous         ###   ########.fr       */
+/*   Updated: 2023/03/02 15:59:00 by klaarous         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "A_Request.hpp"
 #include "Client.hpp"
+#include "configParser/ConfigParser.hpp"
+
 
 A_Request::A_Request()
 {
@@ -174,13 +176,18 @@ bool A_Request::isRequestWellFormed(Client &client)
 	}
 	if (_path.length() > MAX_URI_SIZE)
 	{
-		std::cout << "hereee :" << _path.length() << std::endl;
 		client.set_response_code(REQUEST_URI_TOO_LONG);
 		return (false);
 	}
 	if (client.clientInfos._bestLocationMatched && !client.clientInfos._bestLocationMatched->getRedirect().empty())
 	{
 		client.set_response_code(MOVED_PERMANETLY);
+		return (false);
+	}
+
+	if (client.clientInfos._serverConfigs->size_limit_found() && !contentLength.empty() && ConfigParser::toUnsigendLL(contentLength) > client.clientInfos._serverConfigs->getMaxClientBodySize())
+	{
+		client.set_response_code(REQUEST_ENTITY_TOO_LARGE);
 		return (false);
 	}
 
